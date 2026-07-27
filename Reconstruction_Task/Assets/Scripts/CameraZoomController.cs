@@ -1,8 +1,8 @@
 using UnityEngine;
 
-public class CameraZoomController : MonoBehaviour
+public class CameraZoomController : Singleton<CameraZoomController>
 {
-    public Camera targetCamera;
+    public Camera targetCamera => MainManager.Instance.CurCamera;
     public HoldButton zoomInButton;
     public HoldButton zoomOutButton;
 
@@ -15,8 +15,9 @@ public class CameraZoomController : MonoBehaviour
     [Tooltip("Largest field of view allowed (most zoomed out). Zooming out stops here.")]
     public float maxFieldOfView = 80f;
 
-    void Update()
+    protected override void Update()
     {
+
         if (targetCamera == null) return;
 
         float fov = targetCamera.fieldOfView;
@@ -30,4 +31,5 @@ public class CameraZoomController : MonoBehaviour
 
         targetCamera.fieldOfView = Mathf.Clamp(fov, minFieldOfView, maxFieldOfView);
     }
+    
 }

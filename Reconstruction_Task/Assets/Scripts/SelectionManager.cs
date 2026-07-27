@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 
 public class SelectionManager : MonoBehaviour
 {
-    public Camera mainCamera;
+    public Camera mainCamera => MainManager.Instance.CurCamera;
     public LayerMask placedObjectLayer;
     public TransformGizmo gizmo;
     public PaletteManager palette;

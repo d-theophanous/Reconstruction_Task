@@ -1,12 +1,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PaletteManager : MonoBehaviour
+public class PaletteManager : Singleton<PaletteManager>
 {
-    public static PaletteManager Instance { get; private set; }
+
+    //public List<PlaceableItemDefinition> AllAvailableObjects = new();
 
     [Header("Setup")]
-    public List<PlaceableItemDefinition> availableItems = new List<PlaceableItemDefinition>();
+    public List<PlaceableItemDefinition> CurPaletteSlots = new List<PlaceableItemDefinition>();
+    public List<ObjectScript> CurObjectList = new();
+    public GameObject CurObjectParent;
+
+    public List<ObjectDefinitionPair> AllObjectList = new();
     public PaletteSlotUI slotPrefab;
     public Transform slotContainer; // "Content" object of a Vertical Layout Group inside a ScrollView
 
@@ -27,26 +32,46 @@ public class PaletteManager : MonoBehaviour
     private readonly Dictionary<PlaceableItemDefinition, PaletteSlotUI> slots = new Dictionary<PlaceableItemDefinition, PaletteSlotUI>();
     private readonly Dictionary<PlaceableItemDefinition, List<PlaceableObject>> spawnedInstances = new Dictionary<PlaceableItemDefinition, List<PlaceableObject>>();
 
-    void Awake()
-    {
-        Instance = this;
-    }
+    private int ObjectsInSceneCount;
+    private Dictionary<ObjectType, PlaceableItemDefinition> AllObjectDic = new();
 
-    void Start()
+    protected override void Start()
     {
+        FillObjectDictionary();
+    }
+    private void FillObjectDictionary() 
+    {
+        foreach (var item in AllObjectList)
+        {
+            AllObjectDic.Add(item.ObjectType, item.Definition);
+        }
+    }
+    public void SetUpCurrentReconstruction(List<ObjectScript> object_list, GameObject object_parent)
+    {
+        CurObjectList = object_list;
+        LoadNewObjects(object_list);
+        CurObjectParent = object_parent;
         RebuildPalette();
     }
-
+    public void LoadNewObjects(List<ObjectScript> object_list)
+    {
+        CurPaletteSlots.Clear();
+        foreach (var item in object_list)
+        {
+            CurPaletteSlots.Add(AllObjectDic[item.ObjectType]);
+        }
+    }
     // Call this again at runtime if you ever want to change availableItems dynamically.
     public void RebuildPalette()
     {
+        ObjectsInSceneCount = 0;
         foreach (Transform child in slotContainer)
             Destroy(child.gameObject);
         slots.Clear();
         remaining.Clear();
         spawnedInstances.Clear();
 
-        foreach (var item in availableItems)
+        foreach (var item in CurPaletteSlots)
         {
             remaining[item] = item.initialCount;
             CreateSlot(item);
@@ -86,6 +111,9 @@ public class PaletteManager : MonoBehaviour
         if (!remaining.ContainsKey(item)) return;
         if (remaining[item] >= 0) remaining[item]++;
         if (slots.TryGetValue(item, out var slot)) slot.Refresh(remaining[item]);
+
+        MainManager.Instance.ConfirmButton.interactable = false;
+        ObjectsInSceneCount--;
     }
 
     // Returns the currently placed instance of this item, if any - used by the
@@ -137,7 +165,7 @@ public class PaletteManager : MonoBehaviour
 
     public GameObject SpawnAt(PlaceableItemDefinition item, Vector3 worldPos)
     {
-        var instance = Instantiate(item.prefab, worldPos, Quaternion.identity);
+        var instance = Instantiate(item.prefab, worldPos, Quaternion.identity, MainManager.Instance.ObjectParent.transform);
         SetLayerRecursively(instance, LayerMaskToLayer(placedObjectLayer));
 
         var placeable = instance.GetComponent<PlaceableObject>();
@@ -162,6 +190,10 @@ public class PaletteManager : MonoBehaviour
                 box.size = rend.bounds.size;
             }
         }
+
+        ObjectsInSceneCount++;
+        if (CurPaletteSlots.Count == ObjectsInSceneCount)
+            MainManager.Instance.ConfirmButton.interactable = true;
         return instance;
     }
 
@@ -185,3 +217,15 @@ public class PaletteManager : MonoBehaviour
         return layerNumber;
     }
 }
+public enum ObjectType
+{
+    APPLE
+}
+
+[System.Serializable]
+public class ObjectDefinitionPair
+{
+    public ObjectType ObjectType;
+    public PlaceableItemDefinition Definition;
+}
+

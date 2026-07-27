@@ -22,7 +22,7 @@ public class PaletteSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         item = itemDef;
         palette = manager;
         selectionManager = selection;
-        rootCanvas = GetComponentInParent<Canvas>().rootCanvas;
+        rootCanvas = GetComponentInParent<Canvas>(true).rootCanvas;
         canvasGroup = GetComponent<CanvasGroup>();
 
         if (icon != null) icon.sprite = item.icon;

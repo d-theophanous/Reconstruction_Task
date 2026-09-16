@@ -62,8 +62,7 @@ public class GizmoHandle : MonoBehaviour
         else
         {
             // Uniform scale - all three axes move together.
-            float newValue = Mathf.Max(0.05f, startUniformScale + delta);
-            gizmo.Target.localScale = Vector3.one * newValue;
+            gizmo.SetUniformScale(startUniformScale + delta);
         }
     }
 

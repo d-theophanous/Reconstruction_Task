@@ -19,6 +19,9 @@ public class SelectionManager : MonoBehaviour
     [Tooltip("Units per second when scaling with the keyboard (D = up, A = down).")]
     public float keyboardScaleSpeed = 1f;
 
+    [Tooltip("Units per second when changing depth (Z) with W/S while an object is selected.")]
+    public float keyboardDepthSpeed = 2f;
+
     public PlaceableObject Selected => selected;
 
     // Fired whenever the selection changes - passes null on deselect.
@@ -26,6 +29,10 @@ public class SelectionManager : MonoBehaviour
     public event Action<PlaceableObject> OnSelectionChanged;
 
     private PlaceableObject selected;
+
+    private bool isDragging;
+    private Plane dragPlane;
+    private Vector3 dragStartOffset;
 
     void Update()
     {
@@ -39,8 +46,15 @@ public class SelectionManager : MonoBehaviour
         if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
             TrySelect();
 
+        if (isDragging)
+        {
+            if (Input.GetMouseButton(0)) ContinueDrag();
+            else isDragging = false;
+        }
+
         HandleAxisNudge();
         HandleScaleNudge();
+        HandleDepthNudge();
     }
 
     void HandleAxisNudge()
@@ -70,11 +84,16 @@ public class SelectionManager : MonoBehaviour
             gizmo.Target.position += axisDir * input * keyboardMoveSpeed * Time.deltaTime;
     }
 
+    // A/D changes uniform scale whenever something is selected - independent of the
+    // gizmo's scale-tool button, mirroring how W/S works for depth. Skipped while an
+    // explicit X-axis move nudge (chosen via the action panel) is already driving A/D,
+    // so the two systems don't double up. Clamped via TransformGizmo.minScale/maxScale,
+    // same limit the mouse-dragged scale handle uses.
     void HandleScaleNudge()
     {
-        // Additional to dragging the yellow scale handle with the mouse.
-        if (gizmo.Mode != GizmoMode.Scale) return;
         if (gizmo.Target == null) return;
+        if (gizmo.Mode == GizmoMode.Move && gizmo.ActiveAxis.HasValue && gizmo.ActiveAxis.Value == GizmoAxis.X)
+            return;
 
         float input = 0f;
         if (Input.GetKey(KeyCode.A)) input -= 1f; // scale down
@@ -84,9 +103,25 @@ public class SelectionManager : MonoBehaviour
         {
             Vector3 scale = gizmo.Target.localScale;
             float current = (scale.x + scale.y + scale.z) / 3f;
-            float newValue = Mathf.Max(0.05f, current + input * keyboardScaleSpeed * Time.deltaTime);
-            gizmo.Target.localScale = Vector3.one * newValue;
+            gizmo.SetUniformScale(current + input * keyboardScaleSpeed * Time.deltaTime);
         }
+    }
+
+    // W/S changes depth (world Z) whenever something is selected - independent of the
+    // gizmo's move-tool axis buttons. Skipped while an explicit Y or Z axis nudge (chosen
+    // via the action panel) is already driving W/S, so the two systems don't double up.
+    void HandleDepthNudge()
+    {
+        if (selected == null) return;
+        if (gizmo.Mode == GizmoMode.Move && gizmo.ActiveAxis.HasValue && gizmo.ActiveAxis.Value != GizmoAxis.X)
+            return;
+
+        float input = 0f;
+        if (Input.GetKey(KeyCode.S)) input -= 1f;
+        if (Input.GetKey(KeyCode.W)) input += 1f;
+
+        if (Mathf.Abs(input) > 0f)
+            selected.transform.position += Vector3.forward * input * keyboardDepthSpeed * Time.deltaTime;
     }
 
     void TrySelect()
@@ -106,10 +141,36 @@ public class SelectionManager : MonoBehaviour
             if (placeable != null)
             {
                 Select(placeable);
+                BeginDrag(placeable.transform);
                 return;
             }
         }
         Deselect();
+    }
+
+    // Free-drag directly on the placed object - moves it in the screen-facing X/Y plane only,
+    // depth (world Z) stays exactly where it was when the drag started.
+    void BeginDrag(Transform target)
+    {
+        dragPlane = new Plane(Vector3.forward, target.position);
+        dragStartOffset = target.position - RaycastDragPlane();
+        isDragging = true;
+    }
+
+    void ContinueDrag()
+    {
+        if (gizmo.Target == null) { isDragging = false; return; }
+
+        Vector3 newPos = RaycastDragPlane() + dragStartOffset;
+        newPos.z = gizmo.Target.position.z; // depth locked - only x/y move
+        gizmo.Target.position = newPos;
+    }
+
+    Vector3 RaycastDragPlane()
+    {
+        Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+        dragPlane.Raycast(ray, out float enter);
+        return ray.GetPoint(enter);
     }
 
     // Public so palette icons (PaletteSlotUI) can select an already-placed object too.
@@ -121,10 +182,13 @@ public class SelectionManager : MonoBehaviour
         OnSelectionChanged?.Invoke(selected);
     }
 
-    void Deselect()
+    // Public so MainManager can clear the selection on confirm (keeps the gizmo out of
+    // the reconstruction screenshot) and palette icons/other UI can deselect too.
+    public void Deselect()
     {
         if (selected == null) return;
         selected = null;
+        isDragging = false;
         gizmo.SetTarget(null);
         if (highlighter != null) highlighter.ClearHighlight();
         OnSelectionChanged?.Invoke(null);
@@ -138,6 +202,7 @@ public class SelectionManager : MonoBehaviour
         if (highlighter != null) highlighter.ClearHighlight();
         Destroy(selected.gameObject);
         selected = null;
+        isDragging = false;
         gizmo.SetTarget(null);
         OnSelectionChanged?.Invoke(null);
     }

@@ -9,6 +9,12 @@ public class TransformGizmo : MonoBehaviour
     public float handleDistance = 1.2f;
     public float handleSize = 0.2f;
 
+    [Header("Scale Limits")]
+    [Tooltip("Smallest uniform scale a placed object can be shrunk to.")]
+    public float minScale = 0.05f;
+    [Tooltip("Largest uniform scale a placed object can be grown to.")]
+    public float maxScale = 5f;
+
     public Transform Target { get; private set; }
     public GizmoMode Mode { get; private set; } = GizmoMode.Move;
     public GizmoAxis? ActiveAxis { get; private set; } // currently "selected" move axis, used for keyboard nudging
@@ -102,6 +108,15 @@ public class TransformGizmo : MonoBehaviour
         Mode = mode;
         if (mode == GizmoMode.Scale) SetActiveAxis(null); // keyboard nudging only applies to move
         Refresh();
+    }
+
+    // Applies a uniform scale to the current target, clamped to [minScale, maxScale].
+    // Shared by the keyboard scale nudge and the mouse-dragged scale handle so the
+    // limit can't be bypassed by either input method.
+    public void SetUniformScale(float value)
+    {
+        if (Target == null) return;
+        Target.localScale = Vector3.one * Mathf.Clamp(value, minScale, maxScale);
     }
 
     public void SetActiveAxis(GizmoAxis? axis)

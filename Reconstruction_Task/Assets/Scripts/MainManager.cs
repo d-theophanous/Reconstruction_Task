@@ -13,6 +13,7 @@ public class MainManager : Singleton<MainManager>
     public Button ConfirmButton;
     public GameObject ReconUI;
     public ComparisonUI ComparisonUI;
+    public SelectionManager selectionManager;
     public GameObject TutorialScreen;
 
     public GameObject DropObjectTutorial;
@@ -124,7 +125,7 @@ public class MainManager : Singleton<MainManager>
         if (ComparisonUI != null)
         {
             bool acknowledged = false;
-            string label = isPractice ? "Practice round" : "Trial complete!";
+            string label = isPractice ? "Great! You completed the practice round" : "Trial complete. Thank you for participating!";
             ComparisonUI.Show(lastOriginalTex, lastReconTex, label, () => acknowledged = true);
             while (!acknowledged)
                 yield return null;
@@ -183,6 +184,8 @@ public class MainManager : Singleton<MainManager>
     public void ConfirmButtonPressed()
     {
         Debug.Log("Confirm pressed");
+        // Deselect so the gizmo's colored axis handles aren't visible in the reconstruction screenshot.
+        if (selectionManager != null) selectionManager.Deselect();
         HasAnswered = true;
     }
 }

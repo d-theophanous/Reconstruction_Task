@@ -2798,7 +2798,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "You will now see a picture of objects that were placed in an environment.
     Afterwards, you will see the empty environment and your task will be to place
-    the objects at the same spot that you saw them in. \n\nThis is a trial run."
+    the objects at the same spot that you saw them in. \n\nThere is a trial run first.
+    Afterwards the experiment starts."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3054,6 +3055,7 @@ MonoBehaviour:
   ConfirmButton: {fileID: 2098674976}
   ReconUI: {fileID: 1037512795}
   ComparisonUI: {fileID: 585416454}
+  selectionManager: {fileID: 1505093975}
   TutorialScreen: {fileID: 689876142}
   DropObjectTutorial: {fileID: 1777016553}
   DragObjectTutorial: {fileID: 677594687}
@@ -3869,6 +3871,8 @@ MonoBehaviour:
     m_Bits: 256
   handleDistance: 1.2
   handleSize: 0.2
+  minScale: 0.05
+  maxScale: 5
 --- !u!4 &1307299094
 Transform:
   m_ObjectHideFlags: 0
@@ -4163,6 +4167,7 @@ MonoBehaviour:
   enableHighlightOnSelect: 1
   keyboardMoveSpeed: 2
   keyboardScaleSpeed: 1
+  keyboardDepthSpeed: 2
 --- !u!4 &1505093976
 Transform:
   m_ObjectHideFlags: 0

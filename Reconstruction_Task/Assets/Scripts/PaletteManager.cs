@@ -34,18 +34,26 @@ public class PaletteManager : Singleton<PaletteManager>
 
     private int ObjectsInSceneCount;
     private Dictionary<ObjectType, PlaceableItemDefinition> AllObjectDic = new();
+    private Dictionary<PlaceableItemDefinition, ObjectType> ObjectTypeByDefinition = new();
 
+    private bool HasShownTutorial;
     protected override void Start()
     {
         FillObjectDictionary();
     }
-    private void FillObjectDictionary() 
+    private void FillObjectDictionary()
     {
         foreach (var item in AllObjectList)
         {
             AllObjectDic.Add(item.ObjectType, item.Definition);
+            ObjectTypeByDefinition[item.Definition] = item.ObjectType;
         }
     }
+
+    // Reverse lookup used when recording data for a placed instance, which only knows
+    // its PlaceableItemDefinition (via PlaceableObject.sourceDefinition), not its ObjectType.
+    public ObjectType GetObjectType(PlaceableItemDefinition definition) =>
+        ObjectTypeByDefinition.TryGetValue(definition, out var type) ? type : default;
     public void SetUpCurrentReconstruction(List<ObjectScript> object_list, GameObject object_parent)
     {
         CurObjectList = object_list;
@@ -166,6 +174,7 @@ public class PaletteManager : Singleton<PaletteManager>
     public GameObject SpawnAt(PlaceableItemDefinition item, Vector3 worldPos)
     {
         var instance = Instantiate(item.prefab, worldPos, Quaternion.identity, MainManager.Instance.ObjectParent.transform);
+        instance.transform.localScale = item.spawnScale;
         SetLayerRecursively(instance, LayerMaskToLayer(placedObjectLayer));
 
         var placeable = instance.GetComponent<PlaceableObject>();
@@ -194,6 +203,19 @@ public class PaletteManager : Singleton<PaletteManager>
         ObjectsInSceneCount++;
         if (CurPaletteSlots.Count == ObjectsInSceneCount)
             MainManager.Instance.ConfirmButton.interactable = true;
+
+        if (!HasShownTutorial && MainManager.Instance.IsTrialRun)
+        {
+            HasShownTutorial = true;
+            var guide = MainManager.Instance.DragObjectTutorial.GetComponent<TutorialHandGuide>();
+            guide.startPoint.transform.position = MainManager.Instance.CurCamera.WorldToScreenPoint(placeable.transform.position);
+            var new_end_point = new Vector3(guide.startPoint.position.x + 400,
+                                        guide.startPoint.position.y,
+                                        guide.startPoint.position.z);
+            guide.endPoint.transform.position = new_end_point;
+            MainManager.Instance.DragObjectTutorial.SetActive(true);
+        }
+
         return instance;
     }
 

@@ -9,6 +9,10 @@ public class SelectionManager : MonoBehaviour
     public TransformGizmo gizmo;
     public PaletteManager palette;
 
+    [Tooltip("Optional - tints the selected object when assigned.")]
+    public ObjectHighlighter highlighter;
+    public bool enableHighlightOnSelect = true;
+
     [Tooltip("Units per second when nudging the selected axis with the keyboard.")]
     public float keyboardMoveSpeed = 2f;
 
@@ -113,6 +117,7 @@ public class SelectionManager : MonoBehaviour
     {
         selected = obj;
         gizmo.SetTarget(obj.transform);
+        if (enableHighlightOnSelect && highlighter != null) highlighter.Highlight(obj);
         OnSelectionChanged?.Invoke(selected);
     }
 
@@ -121,6 +126,7 @@ public class SelectionManager : MonoBehaviour
         if (selected == null) return;
         selected = null;
         gizmo.SetTarget(null);
+        if (highlighter != null) highlighter.ClearHighlight();
         OnSelectionChanged?.Invoke(null);
     }
 
@@ -129,6 +135,7 @@ public class SelectionManager : MonoBehaviour
     {
         if (selected == null) return;
         palette.ReturnItem(selected);
+        if (highlighter != null) highlighter.ClearHighlight();
         Destroy(selected.gameObject);
         selected = null;
         gizmo.SetTarget(null);

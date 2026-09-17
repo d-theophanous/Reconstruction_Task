@@ -35,8 +35,8 @@ public class ErrorManager : Singleton<ErrorManager>
         var rows = new List<string>
         {
             "SessionId,SceneName,ObjectType,OrigPosX,OrigPosY,OrigPosZ,OrigScaleX,OrigScaleY,OrigScaleZ," +
-            "ReconPosX,ReconPosY,ReconPosZ,ReconScaleX,ReconScaleY,ReconScaleZ,ReconScreenW,ReconScreenH," +
-            "PositionError,ScaleError"
+            "ReconPosX,ReconPosY,ReconPosZ,ReconScaleX,ReconScaleY,ReconScaleZ"
+            //"PositionError,ScaleError",ReconScreenW,ReconScreenH
         };
 
         foreach (var entry in ObjectDataDic)
@@ -54,9 +54,9 @@ public class ErrorManager : Singleton<ErrorManager>
                     F(orig.Position.x), F(orig.Position.y), F(orig.Position.z),
                     F(orig.Scale.x), F(orig.Scale.y), F(orig.Scale.z),
                     F(recon.Position.x), F(recon.Position.y), F(recon.Position.z),
-                    F(recon.Scale.x), F(recon.Scale.y), F(recon.Scale.z),
-                    F(recon.ScreenSize.x), F(recon.ScreenSize.y),
-                    F(positionError), F(scaleError)));
+                    F(recon.Scale.x), F(recon.Scale.y), F(recon.Scale.z)));
+                //,F(positionError), F(scaleError),
+                //F(recon.ScreenSize.x), F(recon.ScreenSize.y)
             }
         }
 

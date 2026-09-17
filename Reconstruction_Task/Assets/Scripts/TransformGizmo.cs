@@ -1,13 +1,18 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public enum GizmoMode { Move, Scale }
 
+// The move-axis handles (X/Y/Z, drag-to-move) were removed - movement now happens via
+// free mouse drag on the object (X/Y) and the W/S depth key (see SelectionManager).
+// Only the uniform scale handle is built here now.
 public class TransformGizmo : MonoBehaviour
 {
     public LayerMask gizmoLayer; // dedicated layer, e.g. "Gizmo" - exclude this from your selection raycast
     public float handleDistance = 1.2f;
     public float handleSize = 0.2f;
+
+    [Tooltip("Shader used for the handle's material. Assign it here (e.g. the built-in 'Unlit/Color' shader) - a shader only looked up via Shader.Find at runtime isn't guaranteed to be included in a build, which can make the handle render as a plain white block instead of its real color once built. Falls back to Shader.Find if left empty, which is fine in the Editor but risky in a build.")]
+    public Shader handleShader;
 
     [Header("Scale Limits")]
     [Tooltip("Smallest uniform scale a placed object can be shrunk to.")]
@@ -17,32 +22,18 @@ public class TransformGizmo : MonoBehaviour
 
     public Transform Target { get; private set; }
     public GizmoMode Mode { get; private set; } = GizmoMode.Move;
-    public GizmoAxis? ActiveAxis { get; private set; } // currently "selected" move axis, used for keyboard nudging
 
-    GameObject moveRoot;
+    // Kept for SelectionManager's keyboard axis-nudge system - no longer has any visual
+    // representation now that the move handles are gone, but still tracked.
+    public GizmoAxis? ActiveAxis { get; private set; }
+
     GameObject scaleRoot;
-
-    readonly Dictionary<GizmoAxis, Renderer> moveHandleRenderers = new Dictionary<GizmoAxis, Renderer>();
-    readonly Dictionary<GizmoAxis, Color> moveHandleBaseColors = new Dictionary<GizmoAxis, Color>();
-    static readonly Color ActiveHighlightColor = Color.white;
 
     void Awake()
     {
-        moveRoot = BuildMoveHandles();
         scaleRoot = BuildScaleHandle();
         gameObject.SetActive(false);
         Refresh();
-    }
-
-    GameObject BuildMoveHandles()
-    {
-        var root = new GameObject("MoveHandles");
-        root.transform.SetParent(transform, false);
-
-        CreateHandle(root.transform, GizmoAxis.X, Vector3.right, Color.red, GizmoHandleType.Move);
-        CreateHandle(root.transform, GizmoAxis.Y, Vector3.up, Color.green, GizmoHandleType.Move);
-        CreateHandle(root.transform, GizmoAxis.Z, Vector3.forward, Color.blue, GizmoHandleType.Move);
-        return root;
     }
 
     GameObject BuildScaleHandle()
@@ -57,27 +48,18 @@ public class TransformGizmo : MonoBehaviour
 
     void CreateHandle(Transform parent, GizmoAxis axis, Vector3 dir, Color color, GizmoHandleType type)
     {
-        GameObject handle = GameObject.CreatePrimitive(
-            type == GizmoHandleType.Move ? PrimitiveType.Cylinder : PrimitiveType.Cube);
+        GameObject handle = GameObject.CreatePrimitive(PrimitiveType.Cube);
         handle.name = $"{type}_{axis}";
         Destroy(handle.GetComponent<Collider>());
 
         handle.transform.SetParent(parent, false);
         handle.transform.localPosition = dir * handleDistance;
-
-        if (type == GizmoHandleType.Move)
-        {
-            handle.transform.localScale = new Vector3(handleSize * 0.4f, handleDistance * 0.5f, handleSize * 0.4f);
-            handle.transform.up = dir; // orient the cylinder shaft along its axis
-        }
-        else
-        {
-            handle.transform.localScale = Vector3.one * handleSize * 1.4f; // slightly bigger - it's the only scale handle
-        }
+        handle.transform.localScale = Vector3.one * handleSize * 1.4f;
 
         handle.layer = LayerMaskToLayer(gizmoLayer);
         var rend = handle.GetComponent<Renderer>();
-        rend.material = new Material(Shader.Find("Unlit/Color")) { color = color };
+        Shader shader = handleShader != null ? handleShader : Shader.Find("Unlit/Color");
+        rend.material = new Material(shader) { color = color };
 
         var collider = handle.AddComponent<BoxCollider>();
         collider.size = Vector3.one * 1.6f; // a bit larger than the mesh - easier to grab with the mouse
@@ -86,12 +68,6 @@ public class TransformGizmo : MonoBehaviour
         gh.axis = axis;
         gh.type = type;
         gh.gizmo = this;
-
-        if (type == GizmoHandleType.Move)
-        {
-            moveHandleRenderers[axis] = rend;
-            moveHandleBaseColors[axis] = color;
-        }
     }
 
     public void SetTarget(Transform target)
@@ -110,6 +86,11 @@ public class TransformGizmo : MonoBehaviour
         Refresh();
     }
 
+    public void SetActiveAxis(GizmoAxis? axis)
+    {
+        ActiveAxis = axis;
+    }
+
     // Applies a uniform scale to the current target, clamped to [minScale, maxScale].
     // Shared by the keyboard scale nudge and the mouse-dragged scale handle so the
     // limit can't be bypassed by either input method.
@@ -119,20 +100,8 @@ public class TransformGizmo : MonoBehaviour
         Target.localScale = Vector3.one * Mathf.Clamp(value, minScale, maxScale);
     }
 
-    public void SetActiveAxis(GizmoAxis? axis)
-    {
-        ActiveAxis = axis;
-        foreach (var kvp in moveHandleRenderers)
-        {
-            kvp.Value.material.color = (axis.HasValue && kvp.Key == axis.Value)
-                ? ActiveHighlightColor
-                : moveHandleBaseColors[kvp.Key];
-        }
-    }
-
     void Refresh()
     {
-        moveRoot.SetActive(Mode == GizmoMode.Move);
         scaleRoot.SetActive(Mode == GizmoMode.Scale);
     }
 

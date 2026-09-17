@@ -3,25 +3,16 @@ using UnityEngine;
 public enum GizmoAxis { X, Y, Z, Uniform }
 public enum GizmoHandleType { Move, Scale }
 
+// The move-axis handles (X/Y/Z) and their drag-to-move logic were removed - movement now
+// happens via free mouse drag (X/Y) and the W/S depth key (SelectionManager). Only the
+// uniform scale handle uses this component now.
 public class GizmoHandle : MonoBehaviour
 {
     public GizmoAxis axis;
     public GizmoHandleType type;
     public TransformGizmo gizmo;
 
-    Vector3 AxisDir
-    {
-        get
-        {
-            switch (axis)
-            {
-                case GizmoAxis.X: return Vector3.right;
-                case GizmoAxis.Y: return Vector3.up;
-                case GizmoAxis.Z: return Vector3.forward;
-                default: return new Vector3(1f, 1f, 1f).normalized; // Uniform scale handle
-            }
-        }
-    }
+    static readonly Vector3 UniformDir = new Vector3(1f, 1f, 1f).normalized;
 
     Plane dragPlane;
     Vector3 startTargetPos;
@@ -34,36 +25,25 @@ public class GizmoHandle : MonoBehaviour
     {
         if (gizmo.Target == null) return;
 
-        Vector3 axisWorld = AxisDir;
         Vector3 planeOrigin = transform.position;
         Vector3 toCamera = Camera.main.transform.position - planeOrigin;
-        Vector3 normal = Vector3.Cross(Vector3.Cross(axisWorld, toCamera), axisWorld).normalized;
+        Vector3 normal = Vector3.Cross(Vector3.Cross(UniformDir, toCamera), UniformDir).normalized;
         if (normal.sqrMagnitude < 0.0001f) normal = Camera.main.transform.forward;
 
         dragPlane = new Plane(normal, planeOrigin);
         startTargetPos = gizmo.Target.position;
         Vector3 s = gizmo.Target.localScale;
         startUniformScale = (s.x + s.y + s.z) / 3f;
-        startProjection = ProjectOnAxis(RaycastPlane(), startTargetPos, axisWorld);
+        startProjection = ProjectOnAxis(RaycastPlane(), startTargetPos, UniformDir);
     }
 
     void OnMouseDrag()
     {
         if (gizmo.Target == null) return;
 
-        Vector3 axisWorld = AxisDir;
-        float currentProjection = ProjectOnAxis(RaycastPlane(), startTargetPos, axisWorld);
+        float currentProjection = ProjectOnAxis(RaycastPlane(), startTargetPos, UniformDir);
         float delta = currentProjection - startProjection;
-
-        if (type == GizmoHandleType.Move)
-        {
-            gizmo.Target.position = startTargetPos + axisWorld * delta;
-        }
-        else
-        {
-            // Uniform scale - all three axes move together.
-            gizmo.SetUniformScale(startUniformScale + delta);
-        }
+        gizmo.SetUniformScale(startUniformScale + delta);
     }
 
     Vector3 RaycastPlane()

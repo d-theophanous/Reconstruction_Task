@@ -16,17 +16,12 @@ public class PaletteManager : Singleton<PaletteManager>
     public Transform slotContainer; // "Content" object of a Vertical Layout Group inside a ScrollView
 
     [Header("Placement")]
-    public Transform spawnPoint;        // empty GameObject placed in the scene - new objects spawn at its position
+    public Transform spawnPoint;        // fallback position - only used if the drop's screen position can't be resolved to world space
     public LayerMask placedObjectLayer; // layer newly spawned objects get moved to
     public SelectionManager selectionManager; // lets palette icons select their already-placed instance
 
-    [Header("Spawn Offset")]
-    [Tooltip("Distance between each ring of fallback positions if the spawn point is occupied.")]
-    public float spawnOffsetStep = 1f;
-    [Tooltip("Radius used to check whether a position is already occupied by a placed object.")]
-    public float spawnCheckRadius = 0.5f;
-    [Tooltip("How many rings of offset positions to try around the spawn point before giving up and stacking anyway.")]
-    public int maxSpawnSearchRings = 6;
+    [Tooltip("World Z every newly dropped object is placed at. Dragging from the palette only ever sets X/Y - depth always comes from this value.")]
+    public float dropDepth = 0f;
 
     private readonly Dictionary<PlaceableItemDefinition, int> remaining = new Dictionary<PlaceableItemDefinition, int>();
     private readonly Dictionary<PlaceableItemDefinition, PaletteSlotUI> slots = new Dictionary<PlaceableItemDefinition, PaletteSlotUI>();
@@ -133,42 +128,30 @@ public class PaletteManager : Singleton<PaletteManager>
         return null;
     }
 
-    public GameObject SpawnAtSpawnPoint(PlaceableItemDefinition item)
+    // Spawns the item at the world X/Y under the given screen position (where the player
+    // released the drag), at the fixed dropDepth - so only X/Y ever come from the mouse.
+    public GameObject SpawnAtScreenPosition(PlaceableItemDefinition item, Vector2 screenPosition)
     {
-        if (spawnPoint == null)
+        Camera cam = MainManager.Instance.CurCamera;
+        if (cam == null)
         {
-            Debug.LogWarning("PaletteManager: no spawnPoint assigned - can't place the item.");
+            Debug.LogWarning("PaletteManager: no active camera - can't resolve a drop position.");
             return null;
         }
-        Vector3 position = FindFreeSpawnPosition(spawnPoint.position);
-        return SpawnAt(item, position);
-    }
 
-    // Tries the spawn point first, then searches outward in rings on the XZ plane
-    // for the nearest position that isn't already occupied by a placed object.
-    Vector3 FindFreeSpawnPosition(Vector3 origin)
-    {
-        if (!IsOccupied(origin)) return origin;
+        Plane dropPlane = new Plane(Vector3.forward, new Vector3(0f, 0f, dropDepth));
+        Ray ray = cam.ScreenPointToRay(screenPosition);
 
-        for (int ring = 1; ring <= maxSpawnSearchRings; ring++)
-        {
-            float radius = ring * spawnOffsetStep;
-            int pointsInRing = ring * 8;
+        Vector3 worldPos;
+        if (dropPlane.Raycast(ray, out float enter))
+            worldPos = ray.GetPoint(enter);
+        else if (spawnPoint != null)
+            worldPos = spawnPoint.position; // camera looking parallel to the drop plane - rare fallback
+        else
+            worldPos = Vector3.zero;
 
-            for (int i = 0; i < pointsInRing; i++)
-            {
-                float angle = (360f / pointsInRing) * i * Mathf.Deg2Rad;
-                Vector3 candidate = origin + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * radius;
-                if (!IsOccupied(candidate)) return candidate;
-            }
-        }
-
-        return origin; // gave up - spawn on top rather than not spawning at all
-    }
-
-    bool IsOccupied(Vector3 position)
-    {
-        return Physics.CheckSphere(position, spawnCheckRadius, placedObjectLayer);
+        worldPos.z = dropDepth;
+        return SpawnAt(item, worldPos);
     }
 
     public GameObject SpawnAt(PlaceableItemDefinition item, Vector3 worldPos)

@@ -7,18 +7,18 @@ public class ActionPanelUI : MonoBehaviour
     public TransformGizmo gizmo;
 
     [Header("Buttons")]
-    public Button xAxisButton;
-    public Button yAxisButton;
-    public Button zAxisButton;
-    public Button scaleButton;
+    //public Button xAxisButton;
+    //public Button yAxisButton;
+    //public Button zAxisButton;
+    //public Button scaleButton;
     public Button resetButton;
 
     void Start()
     {
-        xAxisButton.onClick.AddListener(() => EnterMoveAxis(GizmoAxis.X));
-        yAxisButton.onClick.AddListener(() => EnterMoveAxis(GizmoAxis.Y));
-        zAxisButton.onClick.AddListener(() => EnterMoveAxis(GizmoAxis.Z));
-        scaleButton.onClick.AddListener(EnterScaleMode);
+        //xAxisButton.onClick.AddListener(() => EnterMoveAxis(GizmoAxis.X));
+        //yAxisButton.onClick.AddListener(() => EnterMoveAxis(GizmoAxis.Y));
+        //zAxisButton.onClick.AddListener(() => EnterMoveAxis(GizmoAxis.Z));
+        //scaleButton.onClick.AddListener(EnterScaleMode);
         resetButton.onClick.AddListener(() => selectionManager.DeleteSelected());
 
         selectionManager.OnSelectionChanged += HandleSelectionChanged;
@@ -34,10 +34,10 @@ public class ActionPanelUI : MonoBehaviour
     void HandleSelectionChanged(PlaceableObject selected)
     {
         bool hasSelection = selected != null;
-        xAxisButton.interactable = hasSelection;
-        yAxisButton.interactable = hasSelection;
-        zAxisButton.interactable = hasSelection;
-        scaleButton.interactable = hasSelection;
+        //xAxisButton.interactable = hasSelection;
+        //yAxisButton.interactable = hasSelection;
+        //zAxisButton.interactable = hasSelection;
+        //scaleButton.interactable = hasSelection;
         resetButton.interactable = hasSelection;
     }
 

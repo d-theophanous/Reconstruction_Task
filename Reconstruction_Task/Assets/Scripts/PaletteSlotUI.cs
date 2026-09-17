@@ -70,6 +70,6 @@ public class PaletteSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         if (dragGhost != null) Destroy(dragGhost);
 
         if (palette.TryConsume(item))
-            palette.SpawnAtSpawnPoint(item);
+            palette.SpawnAtScreenPosition(item, eventData.position);
     }
 }

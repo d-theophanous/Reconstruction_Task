@@ -5,26 +5,33 @@ using UnityEngine;
 
 public class ErrorManager : Singleton<ErrorManager>
 {
-    // Keyed by scene name. Practice trials are simply never added here, so they're
-    // automatically excluded from the saved data.
-    public Dictionary<string, (List<ObjectData> original, List<ObjectData> recon)> ObjectDataDic = new();
+    // Keyed by scene name. Practice trials are included too now, tagged via IsPractice.
+    public Dictionary<string, TrialRecord> ObjectDataDic = new();
 
-    public void FillOriginalDicEntry(string key, List<ObjectData> data)
+    public void FillOriginalDicEntry(string key, List<ObjectData> data, bool isPractice, float reconstructionSeconds)
     {
-        EnsureEntry(key);
-        ObjectDataDic[key].original.AddRange(data);
+        var entry = EnsureEntry(key);
+        entry.Original.AddRange(data);
+        entry.IsPractice = isPractice;
+        entry.ReconstructionSeconds = reconstructionSeconds;
     }
 
-    public void FillReconDicEntry(string key, List<ObjectData> data)
+    public void FillReconDicEntry(string key, List<ObjectData> data, bool isPractice, float reconstructionSeconds)
     {
-        EnsureEntry(key);
-        ObjectDataDic[key].recon.AddRange(data);
+        var entry = EnsureEntry(key);
+        entry.Recon.AddRange(data);
+        entry.IsPractice = isPractice;
+        entry.ReconstructionSeconds = reconstructionSeconds;
     }
 
-    void EnsureEntry(string key)
+    TrialRecord EnsureEntry(string key)
     {
-        if (!ObjectDataDic.ContainsKey(key))
-            ObjectDataDic[key] = (new List<ObjectData>(), new List<ObjectData>());
+        if (!ObjectDataDic.TryGetValue(key, out var entry))
+        {
+            entry = new TrialRecord();
+            ObjectDataDic[key] = entry;
+        }
+        return entry;
     }
 
     // Matches each original object to the nearest not-yet-used reconstructed object of
@@ -34,7 +41,7 @@ public class ErrorManager : Singleton<ErrorManager>
     {
         var rows = new List<string>
         {
-            "SessionId,SceneName,ObjectType,OrigPosX,OrigPosY,OrigPosZ,OrigScaleX,OrigScaleY,OrigScaleZ," +
+            "SessionId,SceneName,IsPractice,ReconstructionSeconds,ObjectType,OrigPosX,OrigPosY,OrigPosZ,OrigScaleX,OrigScaleY,OrigScaleZ," +
             "ReconPosX,ReconPosY,ReconPosZ,ReconScaleX,ReconScaleY,ReconScaleZ"
             //"PositionError,ScaleError",ReconScreenW,ReconScreenH
         };
@@ -42,7 +49,8 @@ public class ErrorManager : Singleton<ErrorManager>
         foreach (var entry in ObjectDataDic)
         {
             string sceneName = entry.Key;
-            var matches = MatchByNearestWithinType(entry.Value.original, entry.Value.recon);
+            TrialRecord record = entry.Value;
+            var matches = MatchByNearestWithinType(record.Original, record.Recon);
 
             foreach (var (orig, recon) in matches)
             {
@@ -50,7 +58,7 @@ public class ErrorManager : Singleton<ErrorManager>
                 float scaleError = Vector3.Distance(orig.Scale, recon.Scale);
 
                 rows.Add(string.Join(",",
-                    sessionId, sceneName, orig.Type,
+                    sessionId, sceneName, record.IsPractice, F(record.ReconstructionSeconds), orig.Type,
                     F(orig.Position.x), F(orig.Position.y), F(orig.Position.z),
                     F(orig.Scale.x), F(orig.Scale.y), F(orig.Scale.z),
                     F(recon.Position.x), F(recon.Position.y), F(recon.Position.z),
@@ -97,6 +105,16 @@ public class ErrorManager : Singleton<ErrorManager>
 
         return matches;
     }
+}
+
+// One reconstruction task (practice or real): the matched original/reconstructed object
+// lists plus how long the participant took and whether it was a practice round.
+public class TrialRecord
+{
+    public List<ObjectData> Original = new();
+    public List<ObjectData> Recon = new();
+    public bool IsPractice;
+    public float ReconstructionSeconds;
 }
 
 // Only position and scale are tracked - rotation isn't part of this task.

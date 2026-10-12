@@ -27,8 +27,12 @@ public class MainManager : Singleton<MainManager>
     public float OriginalSceneWaitTime;
     public float BlackScreenWaitTime;
 
+    [Header("Black Screen")]
+    [Tooltip("Key that ends the black screen for scenes whose 'fixed black screen' setting is off (set per scene in the settings menu).")]
+    public KeyCode ContinueBlackScreenKey = KeyCode.Space;
+
     [Header("Trials")]
-    [Tooltip("Optional - run through this scene once first, same mechanics, but its data is not saved.")]
+    [Tooltip("Optional - run through this scene once first, same mechanics. Its data is saved too, tagged IsPractice.")]
     public string PracticeSceneName;
     public List<string> SceneNameList = new();
     public bool SaveTrialScreenshots = true;
@@ -39,6 +43,21 @@ public class MainManager : Singleton<MainManager>
     private Texture2D lastOriginalTex;
     private Texture2D lastReconTex;
     private int trialIndex;
+
+    // Zoom (field of view) for the scene that's about to load - applied in SetCurCamera,
+    // which the loaded scene's SceneInfoScript calls from Start, so even the very first
+    // frame of the original is already at the right zoom.
+    private float? pendingFieldOfView;
+
+    // Practice scene (if set) followed by every scene in SceneNameList - the scenes the
+    // settings menu shows a row for.
+    public List<string> GetTrialSceneNames()
+    {
+        var names = new List<string>();
+        if (!string.IsNullOrEmpty(PracticeSceneName)) names.Add(PracticeSceneName);
+        names.AddRange(SceneNameList);
+        return names;
+    }
 
     public void ShowTutorialInfoScreen()
     {
@@ -58,7 +77,7 @@ public class MainManager : Singleton<MainManager>
         trialIndex = 0;
         string previousScene = null;
 
-        if (!string.IsNullOrEmpty(PracticeSceneName))
+        if (!string.IsNullOrEmpty(PracticeSceneName) && SettingsStore.Get(PracticeSceneName).include)
         {
             IsTrialRun = true;
             yield return RunTrial(PracticeSceneName, null, isPractice: true);
@@ -66,10 +85,12 @@ public class MainManager : Singleton<MainManager>
         }
 
         IsTrialRun = false;
-        for (int i = 0; i < SceneNameList.Count; i++)
+        foreach (string sceneName in SceneNameList)
         {
-            yield return RunTrial(SceneNameList[i], previousScene, isPractice: false);
-            previousScene = SceneNameList[i];
+            if (!SettingsStore.Get(sceneName).include) continue;
+
+            yield return RunTrial(sceneName, previousScene, isPractice: false);
+            previousScene = sceneName;
         }
 
         if (!string.IsNullOrEmpty(previousScene))
@@ -84,6 +105,9 @@ public class MainManager : Singleton<MainManager>
     // confirm -> comparison screen -> clean up. Shared by the practice run and every real trial.
     private IEnumerator RunTrial(string sceneName, string unloadSceneName, bool isPractice)
     {
+        SceneSettings settings = SettingsStore.Get(sceneName);
+        pendingFieldOfView = settings.fieldOfView;
+
         yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
         if (!string.IsNullOrEmpty(unloadSceneName))
             yield return SceneManager.UnloadSceneAsync(unloadSceneName);
@@ -92,29 +116,42 @@ public class MainManager : Singleton<MainManager>
 
         CleanupTrialTextures();
         lastOriginalTex = CameraCaptureUtility.Capture(CurCamera);
-        List<ObjectData> originalData = isPractice ? null : BuildOriginalData(PaletteManager.Instance.CurObjectList);
+        List<ObjectData> originalData = BuildOriginalData(PaletteManager.Instance.CurObjectList);
 
         BlackBackground.SetActive(true);
         PaletteManager.Instance.CurObjectParent.SetActive(false);
         ReconUI.gameObject.SetActive(true);
-        yield return new WaitForSeconds(BlackScreenWaitTime);
+
+        if (settings.blackScreenFixedTime)
+        {
+            yield return new WaitForSeconds(BlackScreenWaitTime);
+        }
+        else
+        {
+            // Stay black until the experimenter presses the continue key.
+            while (!Input.GetKeyDown(ContinueBlackScreenKey))
+                yield return null;
+        }
+
         BlackBackground.SetActive(false);
 
         if (isPractice)
             DropObjectTutorial.SetActive(true);
 
+        // Reconstruction timer: starts the moment the empty scene is revealed, ends on confirm.
+        float reconstructionStartTime = Time.time;
+
         while (!HasAnswered)
             yield return null;
         HasAnswered = false;
 
-        lastReconTex = CameraCaptureUtility.Capture(CurCamera);
-        List<ObjectData> reconData = isPractice ? null : BuildReconData(ObjectParent, CurCamera);
+        float reconstructionSeconds = Time.time - reconstructionStartTime;
 
-        if (!isPractice)
-        {
-            ErrorManager.Instance.FillOriginalDicEntry(sceneName, originalData);
-            ErrorManager.Instance.FillReconDicEntry(sceneName, reconData);
-        }
+        lastReconTex = CameraCaptureUtility.Capture(CurCamera);
+        List<ObjectData> reconData = BuildReconData(ObjectParent, CurCamera);
+
+        ErrorManager.Instance.FillOriginalDicEntry(sceneName, originalData, isPractice, reconstructionSeconds);
+        ErrorManager.Instance.FillReconDicEntry(sceneName, reconData, isPractice, reconstructionSeconds);
 
         trialIndex++;
         if (SaveTrialScreenshots)
@@ -179,6 +216,15 @@ public class MainManager : Singleton<MainManager>
     public void SetCurCamera(Camera camera)
     {
         CurCamera = camera;
+
+        if (pendingFieldOfView.HasValue && camera != null)
+        {
+            var zoom = CameraZoomController.Instance;
+            float fov = pendingFieldOfView.Value;
+            if (zoom != null) fov = Mathf.Clamp(fov, zoom.minFieldOfView, zoom.maxFieldOfView);
+            camera.fieldOfView = fov;
+            pendingFieldOfView = null;
+        }
     }
 
     public void ConfirmButtonPressed()

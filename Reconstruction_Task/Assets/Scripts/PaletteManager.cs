@@ -230,7 +230,7 @@ public class PaletteManager : Singleton<PaletteManager>
 }
 public enum ObjectType
 {
-    APPLE
+    TENT, BARREL, TEAPOT, CROSS, LAMP, WATERBOTTLE, BUCKET, MATRESS, BOAT, GASTANK
 }
 
 [System.Serializable]

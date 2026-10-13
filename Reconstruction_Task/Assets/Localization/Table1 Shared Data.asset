@@ -1,0 +1,136 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: Table1 Shared Data
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.SharedTableData
+  m_TableCollectionName: Table1
+  m_TableCollectionNameGuidString: cf6d5072cb130eb41ba599b67fea0da5
+  m_Entries:
+  - m_Id: 812271190016
+    m_Key: consent_title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 858630832128
+    m_Key: consent_agree
+    m_Metadata:
+      m_Items: []
+  - m_Id: 909893615616
+    m_Key: consent_decline
+    m_Metadata:
+      m_Items: []
+  - m_Id: 936514863104
+    m_Key: demographic_info
+    m_Metadata:
+      m_Items: []
+  - m_Id: 965199708160
+    m_Key: demographic_age
+    m_Metadata:
+      m_Items: []
+  - m_Id: 998204686336
+    m_Key: demographic_age_placeholder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1047793942528
+    m_Key: demographic_gender
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1102915485696
+    m_Key: demographic_female
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1146389446656
+    m_Key: demographic_male
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1169999183872
+    m_Key: demographic_non_binary
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1210985922560
+    m_Key: demographic_not_say
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1239817568256
+    m_Key: continue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1270574399488
+    m_Key: start
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1294930722816
+    m_Key: tutorial_start_instructions
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353437069312
+    m_Key: tutorial_drag_drop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1402959216640
+    m_Key: tutorial_move_object
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1443941761024
+    m_Key: explanation_scale_object
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1470491705344
+    m_Key: explanation_change_depth
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1496865488896
+    m_Key: confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1631716556800
+    m_Key: explanation_move_object
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1661609361408
+    m_Key: reset_object
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1723181744128
+    m_Key: explanation_camera_title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1756450963456
+    m_Key: explanatino_camera_movement
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1788730327040
+    m_Key: comparision_title_practice
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1860620697600
+    m_Key: comparision_original
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2006821552128
+    m_Key: comparison_reconstruction
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2041860767744
+    m_Key: New Entry
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 3469621394238079248
+  references:
+    version: 2
+    RefIds:
+    - rid: 3469621394238079248
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1791887483506

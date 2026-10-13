@@ -17,7 +17,120 @@ MonoBehaviour:
   m_SharedData: {fileID: 11400000, guid: cf6d5072cb130eb41ba599b67fea0da5, type: 2}
   m_Metadata:
     m_Items: []
-  m_TableData: []
+  m_TableData:
+  - m_Id: 812271190016
+    m_Localized: Consent Information
+    m_Metadata:
+      m_Items: []
+  - m_Id: 858630832128
+    m_Localized: Agree
+    m_Metadata:
+      m_Items: []
+  - m_Id: 909893615616
+    m_Localized: Decline
+    m_Metadata:
+      m_Items: []
+  - m_Id: 936514863104
+    m_Localized: Demographic Information
+    m_Metadata:
+      m_Items: []
+  - m_Id: 965199708160
+    m_Localized: Age
+    m_Metadata:
+      m_Items: []
+  - m_Id: 998204686336
+    m_Localized: Enter Age...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1047793942528
+    m_Localized: Gender
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1102915485696
+    m_Localized: Female
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1146389446656
+    m_Localized: Male
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1169999183872
+    m_Localized: Non-binary
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1210985922560
+    m_Localized: Prefer not to say
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1239817568256
+    m_Localized: Continue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1270574399488
+    m_Localized: Start
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1294930722816
+    m_Localized: "You will now see a picture of objects that were placed in an environment.
+      Afterwards, you will see the empty environment and your task will be to reconstruct
+      the scene by placing the objects at the same spot that you saw them in. \r\n\r\nThere
+      is a trial run first. Afterwards the experiment starts.\r\n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353437069312
+    m_Localized: Drag and Drop the objects in the scene
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1402959216640
+    m_Localized: Move the object with your mouse. To change the depth use the "W"
+      and "S" keys, to change the scale use "A" and "D". Use the mousewheel to zoom
+      in or out of the scene.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1443941761024
+    m_Localized: '"A" and "D" keys to change the scale of the object'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1470491705344
+    m_Localized: '"W" and "S" keys to change the depth of the object'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1496865488896
+    m_Localized: Confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1631716556800
+    m_Localized: Use the mouse to drag the object around
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1661609361408
+    m_Localized: Reset Object
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1723181744128
+    m_Localized: Camera Modification
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1756450963456
+    m_Localized: Mousewheel to zoom in or out of the environment
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1788730327040
+    m_Localized: Great! You completed the practice round
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1860620697600
+    m_Localized: Original
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2006821552128
+    m_Localized: Reconstruction
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2041860767744
+    m_Localized: Object Modification
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

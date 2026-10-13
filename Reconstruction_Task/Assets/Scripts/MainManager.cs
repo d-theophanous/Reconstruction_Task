@@ -4,6 +4,8 @@ using System.IO;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Settings;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -31,11 +33,18 @@ public class MainManager : Singleton<MainManager>
     public Camera CurCamera;
 
     public float OriginalSceneWaitTime;
+    [Tooltip("Default length of a timed black screen. The settings menu's black screen seconds value overrides it once set.")]
     public float BlackScreenWaitTime;
 
     [Header("Black Screen")]
-    [Tooltip("Key that ends the black screen for scenes whose 'fixed black screen' setting is off (set per scene in the settings menu).")]
+    [Tooltip("Pressed together with Shift to end the black screen, for scenes whose 'fixed black screen' setting is off (set per scene in the settings menu).")]
     public KeyCode ContinueBlackScreenKey = KeyCode.Space;
+    [Tooltip("Text shown on the black screen only while it waits for the key combination (never during a timed black screen). Give it a LocalizeStringEvent for the translated message. Keep it inactive in the scene.")]
+    public GameObject BlackScreenContinueText;
+
+    [Header("Comparison Screen Texts")]
+    public LocalizedString PracticeCompleteText;
+    public LocalizedString TrialCompleteText;
 
     [Header("Settings Menu")]
     public SettingsUI settingsUI;
@@ -62,6 +71,18 @@ public class MainManager : Singleton<MainManager>
 
     // Zoom the original image started at - recorded when the scene's camera is applied.
     private float originalStartFieldOfView;
+
+    protected override void Start()
+    {
+        StartCoroutine(ApplySavedLanguage());
+    }
+
+    // Localization initialises asynchronously, so wait for it before switching language.
+    IEnumerator ApplySavedLanguage()
+    {
+        yield return LocalizationSettings.InitializationOperation;
+        SettingsStore.ApplySavedLanguage();
+    }
 
     private int settingsToggleFrame = -1;
 
@@ -173,13 +194,15 @@ public class MainManager : Singleton<MainManager>
 
         if (settings.blackScreenFixedTime)
         {
-            yield return new WaitForSeconds(BlackScreenWaitTime);
+            yield return new WaitForSeconds(SettingsStore.GetBlackScreenSeconds(BlackScreenWaitTime));
         }
         else
         {
-            // Stay black until the experimenter presses the continue key.
-            while (!Input.GetKeyDown(ContinueBlackScreenKey))
+            // Stay black until the experimenter presses Shift + the continue key.
+            if (BlackScreenContinueText != null) BlackScreenContinueText.SetActive(true);
+            while (!ContinueComboPressed())
                 yield return null;
+            if (BlackScreenContinueText != null) BlackScreenContinueText.SetActive(false);
         }
 
         BlackBackground.SetActive(false);
@@ -223,7 +246,7 @@ public class MainManager : Singleton<MainManager>
         if (ComparisonUI != null)
         {
             bool acknowledged = false;
-            string label = isPractice ? "Great! You completed the practice round" : "Trial complete. Thank you for participating!";
+            LocalizedString label = isPractice ? PracticeCompleteText : TrialCompleteText;
             ComparisonUI.Show(lastOriginalTex, lastReconTex, label, () => acknowledged = true);
             while (!acknowledged)
                 yield return null;
@@ -252,6 +275,11 @@ public class MainManager : Singleton<MainManager>
         }
         return list;
     }
+
+    // Shift must be held while the continue key is pressed, so a participant can't skip the
+    // black screen by tapping Space alone.
+    bool ContinueComboPressed() =>
+        Input.GetKeyDown(ContinueBlackScreenKey) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
 
     void SetTrialUI(bool visible)
     {

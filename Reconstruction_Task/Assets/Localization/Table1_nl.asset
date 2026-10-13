@@ -17,7 +17,136 @@ MonoBehaviour:
   m_SharedData: {fileID: 11400000, guid: cf6d5072cb130eb41ba599b67fea0da5, type: 2}
   m_Metadata:
     m_Items: []
-  m_TableData: []
+  m_TableData:
+  - m_Id: 812271190016
+    m_Localized: "De onderzoeker geeft nu informatie over de taak\nen vraagt toestemming
+      voor het gebruiken van de \ngegevens voor wetenschappelijk onderzoek. "
+    m_Metadata:
+      m_Items: []
+  - m_Id: 858630832128
+    m_Localized: Ik geef toestemming
+    m_Metadata:
+      m_Items: []
+  - m_Id: 909893615616
+    m_Localized: Ik geef geen toestemming
+    m_Metadata:
+      m_Items: []
+  - m_Id: 936514863104
+    m_Localized: Demografische gegevens
+    m_Metadata:
+      m_Items: []
+  - m_Id: 965199708160
+    m_Localized: Leeftijd
+    m_Metadata:
+      m_Items: []
+  - m_Id: 998204686336
+    m_Localized: Vul uw leeftijd in
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1047793942528
+    m_Localized: Geslacht
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1102915485696
+    m_Localized: Vrouw
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1146389446656
+    m_Localized: Man
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1169999183872
+    m_Localized: Non-binair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1210985922560
+    m_Localized: Zeg ik liever niet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1239817568256
+    m_Localized: Volgende
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1270574399488
+    m_Localized: Starten
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1294930722816
+    m_Localized: "Je zult nu een plaatje zien van objecten die geplaatst zijn in
+      een omgeving. Daarnaast zul je de omgeving weer zien maar dan zonder objecten.
+      Jouw taak is om de omgeving na te maken zoals hij eerst was door de objecten
+      terug op de juiste plek te plaatsen met dezelfde grootte. Daarnaast kan je
+      de achtergrond in-en uit zoomen. \r\n\r\nEerst is er een oefenronde, daarna
+      begint het echte experiment \r\n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353437069312
+    m_Localized: "Sleep en plaats de objecten in de sc\xE9ne"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1402959216640
+    m_Localized: "Beweeg het object met je muis. Om de diepte van het object te veranderen,
+      gebruik de \u201CW\u201D en \u201CS\u201D toetsen. Om de grootte van het object
+      te veranderen, gebruik de \u201CA\u201D en \u201CD\u201D toetsen. Gebruik de
+      scroll knop om in en uit te zoomen in de sc\xE9ne"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1496865488896
+    m_Localized: Bevestigen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1631716556800
+    m_Localized: Gebruik de muis om het object te verplaatsen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1470491705344
+    m_Localized: "\u201CW\u201D en \u201CS\u201D toetsen om de diepte van het object
+      te veranderen"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1443941761024
+    m_Localized: "\u201CA\u201D en \u201CD\u201D toetsen om de grootte van het object
+      te veranderen"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1661609361408
+    m_Localized: Het object resetten
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1723181744128
+    m_Localized: Cameramodificatie
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1756450963456
+    m_Localized: "Scroll knop om in en uit te zoomen in de sc\xE9ne "
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1788730327040
+    m_Localized: Geweldig! Je hebt de oefenronde voltooid
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1860620697600
+    m_Localized: Orgineel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2006821552128
+    m_Localized: Reconstructie
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2041860767744
+    m_Localized: Objectmodificatie
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37531603353600
+    m_Localized: 'Ronde compleet. Dankjewel voor je deelname. '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40708025270272
+    m_Localized: "Je kan nu zo specifiek mogelijk uitleggen aan de onderzoeker wat
+      je hebt gezien in de voorbeeldsc\xE8ne. Je kan de onderzoeker roepen als die
+      niet in de buurt is."
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

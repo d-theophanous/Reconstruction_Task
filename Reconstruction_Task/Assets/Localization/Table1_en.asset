@@ -19,7 +19,8 @@ MonoBehaviour:
     m_Items: []
   m_TableData:
   - m_Id: 812271190016
-    m_Localized: Consent Information
+    m_Localized: The researcher now provides information about the study and asks
+      for permission to use the data for scientific research.
     m_Metadata:
       m_Items: []
   - m_Id: 858630832128
@@ -39,7 +40,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 998204686336
-    m_Localized: Enter Age...
+    m_Localized: Enter Age
     m_Metadata:
       m_Items: []
   - m_Id: 1047793942528
@@ -129,6 +130,15 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 2041860767744
     m_Localized: Object Modification
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37531603353600
+    m_Localized: Trial complete. Thank you for participating
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40708025270272
+    m_Localized: You can now explain the example scene in as much detail as you can
+      to the researcher. You can call the researcher to you if they're occupied.
     m_Metadata:
       m_Items: []
   references:

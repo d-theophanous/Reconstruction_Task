@@ -1,6 +1,7 @@
 using System;
-using TMPro;
 using UnityEngine;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 
 // Shows the "original scene" screenshot next to the "reconstruction" screenshot after
@@ -11,15 +12,17 @@ public class ComparisonUI : MonoBehaviour
     public RawImage originalImage;
     public RawImage reconstructionImage;
     public Button continueButton;
-    public TMP_Text label;
+
+    [Tooltip("LocalizeStringEvent on the label text (its Update String event should set the TMP text). Show() swaps its string reference, so the text follows the active language.")]
+    public LocalizeStringEvent labelLocalizer;
 
     Action onContinue;
 
-    public void Show(Texture2D original, Texture2D reconstruction, string labelText, Action onContinueCallback)
+    public void Show(Texture2D original, Texture2D reconstruction, LocalizedString labelText, Action onContinueCallback)
     {
         originalImage.texture = original;
         reconstructionImage.texture = reconstruction;
-        if (label != null) label.text = labelText;
+        if (labelLocalizer != null && labelText != null) labelLocalizer.StringReference = labelText;
 
         onContinue = onContinueCallback;
         continueButton.onClick.RemoveAllListeners();

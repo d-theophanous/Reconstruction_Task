@@ -8,30 +8,15 @@ public class ErrorManager : Singleton<ErrorManager>
     // Keyed by scene name. Practice trials are included too now, tagged via IsPractice.
     public Dictionary<string, TrialRecord> ObjectDataDic = new();
 
-    public void FillOriginalDicEntry(string key, List<ObjectData> data, bool isPractice, float reconstructionSeconds)
+    public void AddTrial(string key, TrialRecord record)
     {
-        var entry = EnsureEntry(key);
-        entry.Original.AddRange(data);
-        entry.IsPractice = isPractice;
-        entry.ReconstructionSeconds = reconstructionSeconds;
+        ObjectDataDic[key] = record;
     }
 
-    public void FillReconDicEntry(string key, List<ObjectData> data, bool isPractice, float reconstructionSeconds)
+    // Drops all recorded trials - call after saving so the next participant starts empty.
+    public void ResetData()
     {
-        var entry = EnsureEntry(key);
-        entry.Recon.AddRange(data);
-        entry.IsPractice = isPractice;
-        entry.ReconstructionSeconds = reconstructionSeconds;
-    }
-
-    TrialRecord EnsureEntry(string key)
-    {
-        if (!ObjectDataDic.TryGetValue(key, out var entry))
-        {
-            entry = new TrialRecord();
-            ObjectDataDic[key] = entry;
-        }
-        return entry;
+        ObjectDataDic.Clear();
     }
 
     // Matches each original object to the nearest not-yet-used reconstructed object of
@@ -41,10 +26,13 @@ public class ErrorManager : Singleton<ErrorManager>
     {
         var rows = new List<string>
         {
-            "SessionId,SceneName,IsPractice,ReconstructionSeconds,ObjectType,OrigPosX,OrigPosY,OrigPosZ,OrigScaleX,OrigScaleY,OrigScaleZ," +
+            "SessionId,Age,Gender,SceneName,IsPractice,ReconstructionSeconds,FixedBlackScreen,OriginalStartFOV,ReconStartFOV,ReconConfirmFOV,ObjectType,OrigPosX,OrigPosY,OrigPosZ,OrigScaleX,OrigScaleY,OrigScaleZ," +
             "ReconPosX,ReconPosY,ReconPosZ,ReconScaleX,ReconScaleY,ReconScaleZ"
             //"PositionError,ScaleError",ReconScreenW,ReconScreenH
         };
+
+        string age = SessionInfo.Age > 0 ? SessionInfo.Age.ToString() : "";
+        string gender = SessionInfo.Gender?.ToString() ?? "";
 
         foreach (var entry in ObjectDataDic)
         {
@@ -58,7 +46,9 @@ public class ErrorManager : Singleton<ErrorManager>
                 float scaleError = Vector3.Distance(orig.Scale, recon.Scale);
 
                 rows.Add(string.Join(",",
-                    sessionId, sceneName, record.IsPractice, F(record.ReconstructionSeconds), orig.Type,
+                    sessionId, age, gender, sceneName, record.IsPractice, F(record.ReconstructionSeconds),
+                    record.FixedBlackScreen, F(record.OriginalStartFieldOfView), F(record.ReconStartFieldOfView),
+                    F(record.ReconConfirmFieldOfView), orig.Type,
                     F(orig.Position.x), F(orig.Position.y), F(orig.Position.z),
                     F(orig.Scale.x), F(orig.Scale.y), F(orig.Scale.z),
                     F(recon.Position.x), F(recon.Position.y), F(recon.Position.z),
@@ -107,14 +97,19 @@ public class ErrorManager : Singleton<ErrorManager>
     }
 }
 
-// One reconstruction task (practice or real): the matched original/reconstructed object
-// lists plus how long the participant took and whether it was a practice round.
+// One reconstruction task (practice or real): the original/reconstructed object lists plus
+// how it was run - practice or not, how long the participant took, and the camera zoom
+// (field of view) at each stage.
 public class TrialRecord
 {
     public List<ObjectData> Original = new();
     public List<ObjectData> Recon = new();
     public bool IsPractice;
     public float ReconstructionSeconds;
+    public bool FixedBlackScreen;            // true: timed black screen, false: waited for the key press
+    public float OriginalStartFieldOfView;   // zoom when the original image first appeared
+    public float ReconStartFieldOfView;      // zoom when the empty scene was revealed
+    public float ReconConfirmFieldOfView;    // zoom at the moment Confirm was pressed
 }
 
 // Only position and scale are tracked - rotation isn't part of this task.

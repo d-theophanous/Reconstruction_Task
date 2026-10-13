@@ -32,6 +32,9 @@ public class PaletteManager : Singleton<PaletteManager>
     private Dictionary<PlaceableItemDefinition, ObjectType> ObjectTypeByDefinition = new();
 
     private bool HasShownTutorial;
+
+    // So the next participant gets the drag tutorial in their practice round too.
+    public void ResetTutorial() => HasShownTutorial = false;
     protected override void Start()
     {
         FillObjectDictionary();
@@ -68,6 +71,9 @@ public class PaletteManager : Singleton<PaletteManager>
     public void RebuildPalette()
     {
         ObjectsInSceneCount = 0;
+        // Nothing is placed yet, so Confirm stays disabled until every object is placed again
+        // (it was left enabled from the previous trial otherwise).
+        MainManager.Instance.ConfirmButton.interactable = false;
         foreach (Transform child in slotContainer)
             Destroy(child.gameObject);
         slots.Clear();

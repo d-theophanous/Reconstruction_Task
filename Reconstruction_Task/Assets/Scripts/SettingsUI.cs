@@ -10,11 +10,30 @@ public class SettingsUI : MonoBehaviour
     public Transform rowContainer;
     public SettingsRowUI rowPrefab;
 
+    public bool IsOpen => panel.activeSelf;
+
     // Wire the main menu's Settings button to this.
     public void Open()
     {
         panel.SetActive(true);
         Rebuild();
+    }
+
+    public void Toggle()
+    {
+        if (IsOpen) Close();
+        else Open();
+    }
+
+    // Wire the settings panel's Quit button to this. Saves the settings first.
+    public void QuitApplication()
+    {
+        SettingsStore.Save();
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 
     // Wire the settings panel's Close button to this.

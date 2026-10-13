@@ -8,7 +8,9 @@ public class SceneSettings
 {
     public string sceneName;
     public bool include = true;
-    public float fieldOfView = 60f;         // camera field of view: low = zoomed in, high = zoomed out
+    // Camera field of view: low = zoomed in, high = zoomed out.
+    public float originalFieldOfView = 60f;       // while the original scene is shown
+    public float reconstructionFieldOfView = 60f; // while the participant reconstructs
     public bool blackScreenFixedTime = true; // true: timed black screen, false: waits for the continue key
 }
 

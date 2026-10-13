@@ -36,6 +36,9 @@ public class SelectionManager : MonoBehaviour
 
     void Update()
     {
+        // Settings menu is open (or was just toggled) - leave the scene alone.
+        if (MainManager.Instance != null && MainManager.Instance.SettingsBlockingInput) return;
+
         // W = move tool, R = scale tool (same shortcuts as the Unity editor)
         if (Input.GetKeyDown(KeyCode.W)) gizmo.SetMode(GizmoMode.Move);
         if (Input.GetKeyDown(KeyCode.R)) gizmo.SetMode(GizmoMode.Scale);

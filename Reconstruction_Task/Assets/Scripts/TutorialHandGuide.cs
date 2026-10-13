@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// Shows an animated "hand" UI icon that loops between two points to
@@ -47,6 +48,11 @@ public class TutorialHandGuide : MonoBehaviour
 
     private void OnEnable()
     {
+        // The dim overlay, hand and any text must not swallow clicks - the very first click
+        // should reach the object/palette underneath (it still dismisses the tutorial below).
+        foreach (var graphic in GetComponentsInChildren<Graphic>(true))
+            graphic.raycastTarget = false;
+
         _isActive = true;
         if (handIcon != null)
         {

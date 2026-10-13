@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -10,9 +12,13 @@ public class MainManager : Singleton<MainManager>
     [Header("UI References")]
     public GameObject BlackBackground;
     public GameObject MenuUI;
+    [Tooltip("The Consent UI - shown again after each finished session so the next participant starts fresh.")]
+    public GameObject ConsentScreen;
     public Button ConfirmButton;
     public GameObject ReconUI;
     public ComparisonUI ComparisonUI;
+    [Tooltip("Visible while the original image is shown and while the participant reconstructs - hidden during the black screen and after Confirm. Leave it inactive in the scene; this script shows/hides it.")]
+    public GameObject TrialUI;
     public SelectionManager selectionManager;
     public GameObject TutorialScreen;
 
@@ -31,6 +37,11 @@ public class MainManager : Singleton<MainManager>
     [Tooltip("Key that ends the black screen for scenes whose 'fixed black screen' setting is off (set per scene in the settings menu).")]
     public KeyCode ContinueBlackScreenKey = KeyCode.Space;
 
+    [Header("Settings Menu")]
+    public SettingsUI settingsUI;
+    [Tooltip("Opens/closes the settings menu at any time, even with an object selected.")]
+    public KeyCode SettingsMenuKey = KeyCode.Tab;
+
     [Header("Trials")]
     [Tooltip("Optional - run through this scene once first, same mechanics. Its data is saved too, tagged IsPractice.")]
     public string PracticeSceneName;
@@ -48,6 +59,30 @@ public class MainManager : Singleton<MainManager>
     // which the loaded scene's SceneInfoScript calls from Start, so even the very first
     // frame of the original is already at the right zoom.
     private float? pendingFieldOfView;
+
+    // Zoom the original image started at - recorded when the scene's camera is applied.
+    private float originalStartFieldOfView;
+
+    private int settingsToggleFrame = -1;
+
+    // True while the settings menu is open (and for the frame it was just toggled), so scene
+    // input like SelectionManager's keys doesn't react to the same key press.
+    public bool SettingsBlockingInput =>
+        (settingsUI != null && settingsUI.IsOpen) || Time.frameCount == settingsToggleFrame;
+
+    protected override void Update()
+    {
+        if (settingsUI == null || !Input.GetKeyDown(SettingsMenuKey) || IsTypingInInputField()) return;
+
+        settingsToggleFrame = Time.frameCount;
+        settingsUI.Toggle();
+    }
+
+    static bool IsTypingInInputField()
+    {
+        var current = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
+        return current != null && current.TryGetComponent(out TMP_InputField input) && input.isFocused;
+    }
 
     // Practice scene (if set) followed by every scene in SceneNameList - the scenes the
     // settings menu shows a row for.
@@ -96,9 +131,17 @@ public class MainManager : Singleton<MainManager>
         if (!string.IsNullOrEmpty(previousScene))
             yield return SceneManager.UnloadSceneAsync(previousScene);
 
-        ErrorManager.Instance.CalculateAndSaveError(SessionInfo.ParticipantId);
+        ErrorManager.Instance.CalculateAndSaveError(SessionInfo.SessionId);
 
-        MenuUI.SetActive(true);
+        // Fresh state for the next participant, who starts again at the consent screen.
+        ErrorManager.Instance.ResetData();
+        SessionInfo.Reset();
+        PaletteManager.Instance.ResetTutorial();
+
+        if (ConsentScreen != null)
+            ConsentScreen.SetActive(true);
+        else
+            MenuUI.SetActive(true);
     }
 
     // Runs one full trial: load scene -> show original -> black screen -> reconstruct ->
@@ -106,11 +149,13 @@ public class MainManager : Singleton<MainManager>
     private IEnumerator RunTrial(string sceneName, string unloadSceneName, bool isPractice)
     {
         SceneSettings settings = SettingsStore.Get(sceneName);
-        pendingFieldOfView = settings.fieldOfView;
+        pendingFieldOfView = settings.originalFieldOfView;
 
         yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
         if (!string.IsNullOrEmpty(unloadSceneName))
             yield return SceneManager.UnloadSceneAsync(unloadSceneName);
+
+        SetTrialUI(true); // the original image is now visible
 
         yield return new WaitForSeconds(OriginalSceneWaitTime);
 
@@ -118,9 +163,13 @@ public class MainManager : Singleton<MainManager>
         lastOriginalTex = CameraCaptureUtility.Capture(CurCamera);
         List<ObjectData> originalData = BuildOriginalData(PaletteManager.Instance.CurObjectList);
 
+        SetTrialUI(false); // black screen
         BlackBackground.SetActive(true);
         PaletteManager.Instance.CurObjectParent.SetActive(false);
         ReconUI.gameObject.SetActive(true);
+
+        // Switch to the reconstruction zoom while the screen is black, so there's no visible jump.
+        float reconStartFieldOfView = ApplyFieldOfView(CurCamera, settings.reconstructionFieldOfView);
 
         if (settings.blackScreenFixedTime)
         {
@@ -134,6 +183,7 @@ public class MainManager : Singleton<MainManager>
         }
 
         BlackBackground.SetActive(false);
+        SetTrialUI(true); // reconstruction starts
 
         if (isPractice)
             DropObjectTutorial.SetActive(true);
@@ -144,14 +194,25 @@ public class MainManager : Singleton<MainManager>
         while (!HasAnswered)
             yield return null;
         HasAnswered = false;
+        SetTrialUI(false); // confirmed
 
         float reconstructionSeconds = Time.time - reconstructionStartTime;
+        float confirmFieldOfView = CurCamera.fieldOfView; // zoom at the moment Confirm was pressed
 
         lastReconTex = CameraCaptureUtility.Capture(CurCamera);
         List<ObjectData> reconData = BuildReconData(ObjectParent, CurCamera);
 
-        ErrorManager.Instance.FillOriginalDicEntry(sceneName, originalData, isPractice, reconstructionSeconds);
-        ErrorManager.Instance.FillReconDicEntry(sceneName, reconData, isPractice, reconstructionSeconds);
+        ErrorManager.Instance.AddTrial(sceneName, new TrialRecord
+        {
+            Original = originalData,
+            Recon = reconData,
+            IsPractice = isPractice,
+            ReconstructionSeconds = reconstructionSeconds,
+            FixedBlackScreen = settings.blackScreenFixedTime,
+            OriginalStartFieldOfView = originalStartFieldOfView,
+            ReconStartFieldOfView = reconStartFieldOfView,
+            ReconConfirmFieldOfView = confirmFieldOfView
+        });
 
         trialIndex++;
         if (SaveTrialScreenshots)
@@ -192,6 +253,11 @@ public class MainManager : Singleton<MainManager>
         return list;
     }
 
+    void SetTrialUI(bool visible)
+    {
+        if (TrialUI != null) TrialUI.SetActive(visible);
+    }
+
     // Destroys every object the player placed this trial, so the next trial starts empty.
     void ClearReconstructedObjects()
     {
@@ -217,14 +283,24 @@ public class MainManager : Singleton<MainManager>
     {
         CurCamera = camera;
 
-        if (pendingFieldOfView.HasValue && camera != null)
+        if (pendingFieldOfView.HasValue)
         {
-            var zoom = CameraZoomController.Instance;
-            float fov = pendingFieldOfView.Value;
-            if (zoom != null) fov = Mathf.Clamp(fov, zoom.minFieldOfView, zoom.maxFieldOfView);
-            camera.fieldOfView = fov;
+            originalStartFieldOfView = ApplyFieldOfView(camera, pendingFieldOfView.Value);
             pendingFieldOfView = null;
         }
+    }
+
+    // Sets the camera's field of view, kept within the Camera Controller's min/max.
+    // Returns the value that was actually applied.
+    static float ApplyFieldOfView(Camera camera, float fieldOfView)
+    {
+        if (camera == null) return fieldOfView;
+
+        var zoom = CameraZoomController.Instance;
+        camera.fieldOfView = zoom != null
+            ? Mathf.Clamp(fieldOfView, zoom.minFieldOfView, zoom.maxFieldOfView)
+            : fieldOfView;
+        return camera.fieldOfView;
     }
 
     public void ConfirmButtonPressed()

@@ -1,18 +1,17 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-// Self-contained consent gate. Doesn't know about MainManager or the menu - wire
-// OnAgreed/OnDeclined in the Inspector to show/hide whatever panels this project needs.
-// The consent copy itself is authored directly on the panel's TMP Text in the Editor.
+// Consent gate. Agreeing records consent and (via OnAgreed -> OnAgree) moves on to the
+// demographics screen. The consent copy itself is authored directly on the panel's TMP
+// Text in the Editor.
 public class ConsentUI : MonoBehaviour
 {
     public Button agreeButton;
     public Button declineButton;
 
-    [Tooltip("Optional - leave unassigned to auto-generate an anonymous participant id.")]
-    public TMP_InputField participantIdField;
+    [Tooltip("Shown after the participant agrees (asks for age and gender).")]
+    public GameObject demographicsUI;
 
     public UnityEvent OnAgreed;
     public UnityEvent OnDeclined;
@@ -23,16 +22,20 @@ public class ConsentUI : MonoBehaviour
         if (declineButton != null) declineButton.onClick.AddListener(HandleDecline);
     }
 
+    // Wired to OnAgreed in the Inspector.
     public void OnAgree()
     {
         gameObject.SetActive(false);
-        MainManager.Instance.MenuUI.SetActive(true);
+
+        if (demographicsUI != null)
+            demographicsUI.SetActive(true);
+        else
+            MainManager.Instance.MenuUI.SetActive(true); // no demographics screen assigned yet
     }
 
     void HandleAgree()
     {
-        string id = participantIdField != null ? participantIdField.text : null;
-        SessionInfo.RecordConsent(id);
+        SessionInfo.RecordConsent();
         OnAgreed?.Invoke();
     }
 

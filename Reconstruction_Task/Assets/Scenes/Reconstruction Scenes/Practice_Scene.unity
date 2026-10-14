@@ -275884,7 +275884,7 @@ GameObject:
   - component: {fileID: 950410669}
   - component: {fileID: 950410668}
   - component: {fileID: 950410667}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: UNS_Terrain
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -488986,7 +488986,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1637906993}
   - component: {fileID: 1637906992}
-  - component: {fileID: 1637906991}
   - component: {fileID: 1637906996}
   - component: {fileID: 1637906995}
   m_Layer: 0
@@ -488996,14 +488995,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!81 &1637906991
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1637906990}
-  m_Enabled: 1
 --- !u!20 &1637906992
 Camera:
   m_ObjectHideFlags: 0

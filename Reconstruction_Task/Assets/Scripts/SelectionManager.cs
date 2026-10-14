@@ -19,7 +19,7 @@ public class SelectionManager : MonoBehaviour
     [Tooltip("Units per second when scaling with the keyboard (D = up, A = down).")]
     public float keyboardScaleSpeed = 1f;
 
-    [Tooltip("Units per second when changing depth (Z) with W/S while an object is selected.")]
+    [Tooltip("Units per second when moving the selected object away from / towards the camera with W/S.")]
     public float keyboardDepthSpeed = 2f;
 
     public PlaceableObject Selected => selected;
@@ -110,7 +110,7 @@ public class SelectionManager : MonoBehaviour
         }
     }
 
-    // W/S changes depth (world Z) whenever something is selected - independent of the
+    // W/S changes depth - away from (W) / towards (S) the camera - whenever something is selected, independent of the
     // gizmo's move-tool axis buttons. Skipped while an explicit Y or Z axis nudge (chosen
     // via the action panel) is already driving W/S, so the two systems don't double up.
     void HandleDepthNudge()
@@ -124,7 +124,7 @@ public class SelectionManager : MonoBehaviour
         if (Input.GetKey(KeyCode.W)) input += 1f;
 
         if (Mathf.Abs(input) > 0f)
-            selected.transform.position += Vector3.forward * input * keyboardDepthSpeed * Time.deltaTime;
+            selected.transform.position += mainCamera.transform.forward * input * keyboardDepthSpeed * Time.deltaTime;
     }
 
     void TrySelect()
@@ -151,11 +151,12 @@ public class SelectionManager : MonoBehaviour
         Deselect();
     }
 
-    // Free-drag directly on the placed object - moves it in the screen-facing X/Y plane only,
-    // depth (world Z) stays exactly where it was when the drag started.
+    // Free-drag directly on the placed object - slides it across the screen (camera-facing
+    // plane through the object), so its distance from the camera stays exactly what it was
+    // when the drag started. Depth is changed with W/S instead.
     void BeginDrag(Transform target)
     {
-        dragPlane = new Plane(Vector3.forward, target.position);
+        dragPlane = new Plane(-mainCamera.transform.forward, target.position);
         dragStartOffset = target.position - RaycastDragPlane();
         isDragging = true;
     }
@@ -164,9 +165,7 @@ public class SelectionManager : MonoBehaviour
     {
         if (gizmo.Target == null) { isDragging = false; return; }
 
-        Vector3 newPos = RaycastDragPlane() + dragStartOffset;
-        newPos.z = gizmo.Target.position.z; // depth locked - only x/y move
-        gizmo.Target.position = newPos;
+        gizmo.Target.position = RaycastDragPlane() + dragStartOffset;
     }
 
     Vector3 RaycastDragPlane()

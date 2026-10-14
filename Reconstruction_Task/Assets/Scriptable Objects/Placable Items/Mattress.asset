@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 831ed50cd2511684f972a67e40177085, type: 3}
   m_Name: Mattress
   m_EditorClassIdentifier: Assembly-CSharp::PlaceableItemDefinition
-  itemName: New Item
-  icon: {fileID: 0}
-  prefab: {fileID: 0}
+  itemName: Matress
+  icon: {fileID: 21300000, guid: b80802a38f230404e8f0108f8940bf49, type: 3}
+  prefab: {fileID: 5575029248995416594, guid: 29c6dee3a57065f468900ecb68965032, type: 3}
   initialCount: 1
   spawnScale: {x: 1, y: 1, z: 1}

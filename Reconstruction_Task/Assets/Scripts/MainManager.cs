@@ -152,6 +152,8 @@ public class MainManager : Singleton<MainManager>
         if (!string.IsNullOrEmpty(previousScene))
             yield return SceneManager.UnloadSceneAsync(previousScene);
 
+        HideLoadingBlackScreen(); // the last trial left it on after Continue
+
         ErrorManager.Instance.CalculateAndSaveError(SessionInfo.SessionId);
 
         // Fresh state for the next participant, who starts again at the consent screen.
@@ -172,9 +174,17 @@ public class MainManager : Singleton<MainManager>
         SceneSettings settings = SettingsStore.Get(sceneName);
         pendingFieldOfView = settings.originalFieldOfView;
 
+        // Cover the previous scene while the next one loads, so it's never seen lingering.
+        ShowLoadingBlackScreen();
+
         yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
         if (!string.IsNullOrEmpty(unloadSceneName))
             yield return SceneManager.UnloadSceneAsync(unloadSceneName);
+
+        // One more frame so the new scene's Start() has run (camera, zoom, palette) before
+        // the first image is shown.
+        yield return null;
+        HideLoadingBlackScreen();
 
         SetTrialUI(true); // the original image is now visible
 
@@ -247,7 +257,11 @@ public class MainManager : Singleton<MainManager>
         {
             bool acknowledged = false;
             LocalizedString label = isPractice ? PracticeCompleteText : TrialCompleteText;
-            ComparisonUI.Show(lastOriginalTex, lastReconTex, label, () => acknowledged = true);
+            ComparisonUI.Show(lastOriginalTex, lastReconTex, label, () =>
+            {
+                acknowledged = true;
+                ShowLoadingBlackScreen(); // no glimpse of the old scene before the next one loads
+            });
             while (!acknowledged)
                 yield return null;
         }
@@ -280,6 +294,20 @@ public class MainManager : Singleton<MainManager>
     // black screen by tapping Space alone.
     bool ContinueComboPressed() =>
         Input.GetKeyDown(ContinueBlackScreenKey) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
+
+    // Black Background is a child of the Reconstruction UI canvas, so that canvas has to be
+    // active for the black screen to be visible at all. Covers everything while a scene loads.
+    void ShowLoadingBlackScreen()
+    {
+        ReconUI.SetActive(true);
+        BlackBackground.SetActive(true);
+    }
+
+    void HideLoadingBlackScreen()
+    {
+        BlackBackground.SetActive(false);
+        ReconUI.SetActive(false);
+    }
 
     void SetTrialUI(bool visible)
     {

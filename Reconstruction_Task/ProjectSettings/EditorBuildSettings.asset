@@ -17,6 +17,21 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TrialScene.unity
     guid: bdc8ed8e5183c9646af49da834233995
+  - enabled: 1
+    path: Assets/Scenes/Reconstruction Scenes/Practice_Scene.unity
+    guid: 97d385c6b1805aa40b60c337ace7e4a5
+  - enabled: 1
+    path: Assets/Scenes/Reconstruction Scenes/Scene1.unity
+    guid: 657e06c5c6238f1468e311a1983c0bf4
+  - enabled: 1
+    path: Assets/Scenes/Reconstruction Scenes/Scene2.unity
+    guid: 85d62865d23f5504aa6a33e716def1cb
+  - enabled: 1
+    path: Assets/Scenes/Reconstruction Scenes/Scene3.unity
+    guid: 090830fb3d7cad341a13cbbdd49f1c8b
+  - enabled: 1
+    path: Assets/Scenes/Reconstruction Scenes/Scene4.unity
+    guid: 6c4068c284348554f96ecb276ab29c83
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: 0280a59d093bc0042aad029e9b2d8ee0, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 831ed50cd2511684f972a67e40177085, type: 3}
   m_Name: Waterbottle 6
   m_EditorClassIdentifier: Assembly-CSharp::PlaceableItemDefinition
-  itemName: New Item
-  icon: {fileID: 0}
-  prefab: {fileID: 0}
+  itemName: Waterbottle
+  icon: {fileID: 21300000, guid: 971ef14a74cfd654c8301adb27ffe8db, type: 3}
+  prefab: {fileID: 5522037794775468835, guid: 61df3d7c47ccb5b4987d5e3eea708869, type: 3}
   initialCount: 1
   spawnScale: {x: 1, y: 1, z: 1}

@@ -16,4 +16,4 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 6151ac65a58daf5439400d8d96950339, type: 3}
   prefab: {fileID: 7273381184954782421, guid: e50f6f1cf1c7a6d4a9648a2e505be126, type: 3}
   initialCount: 1
-  spawnScale: {x: 1, y: 1, z: 1}
+  spawnScale: {x: 3, y: 3, z: 3}

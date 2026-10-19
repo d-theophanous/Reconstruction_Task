@@ -32342,7 +32342,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b96496cb56c9e64586bc9aa4e08258f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneInfoScript
-  ObjectList: []
+  ObjectList:
+  - {fileID: 2109861802}
+  - {fileID: 2122645398}
   ObjectParent: {fileID: 1874655521}
   Camera: {fileID: 1637906992}
 --- !u!4 &128395414
@@ -626751,6 +626753,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2566374403834921419, guid: 6a590ea4bd989034299b21b584e1b680, type: 3}
   m_PrefabInstance: {fileID: 2109861800}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2109861802 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1216875553443184324, guid: 6a590ea4bd989034299b21b584e1b680, type: 3}
+  m_PrefabInstance: {fileID: 2109861800}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 412d2f7a12a6fc24fb213bc34b699e89, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectScript
 --- !u!1001 &2110222264
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -630365,6 +630378,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3296204922632850906, guid: e1a4762a2a5b7f443b23bdb932ad5193, type: 3}
   m_PrefabInstance: {fileID: 2122645396}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2122645398 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1904407509217133009, guid: e1a4762a2a5b7f443b23bdb932ad5193, type: 3}
+  m_PrefabInstance: {fileID: 2122645396}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 412d2f7a12a6fc24fb213bc34b699e89, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectScript
 --- !u!1001 &2123340354
 PrefabInstance:
   m_ObjectHideFlags: 0

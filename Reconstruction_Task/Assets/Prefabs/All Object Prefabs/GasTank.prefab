@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8123327832297513106}
   - component: {fileID: 1190199964070866264}
   - component: {fileID: 1795035336629922591}
+  - component: {fileID: 1904407509217133009}
   m_Layer: 0
   m_Name: GasTank
   m_TagString: Untagged
@@ -113,3 +114,16 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 2432570179154699791, guid: 16634414108d1dc4f9a3045aa66170f0, type: 3}
+--- !u!114 &1904407509217133009
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4858927844404272073}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 412d2f7a12a6fc24fb213bc34b699e89, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectScript
+  ObjectType: 9

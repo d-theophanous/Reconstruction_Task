@@ -19,7 +19,7 @@ public class PaletteManager : Singleton<PaletteManager>
     public LayerMask placedObjectLayer; // layer newly spawned objects get moved to
     public SelectionManager selectionManager; // lets palette icons select their already-placed instance
 
-    [Tooltip("Every dropped object spawns in the middle of the screen, this far in front of the camera (world units).")]
+    [Tooltip("Distance in front of the camera (world units) every dropped object is placed at. Where it appears on screen is decided by where the drag was released.")]
     public float spawnDistanceFromCamera = 5f;
 
     private readonly Dictionary<PlaceableItemDefinition, int> remaining = new Dictionary<PlaceableItemDefinition, int>();
@@ -133,9 +133,9 @@ public class PaletteManager : Singleton<PaletteManager>
         return null;
     }
 
-    // Spawns the item in the middle of the screen, spawnDistanceFromCamera in front of the
-    // camera - the same spot for every object, wherever the player let go of the drag.
-    public GameObject SpawnInFrontOfCamera(PlaceableItemDefinition item)
+    // Spawns the item where the player let go of the drag: the screen position decides where
+    // it appears on screen, while its distance from the camera is always spawnDistanceFromCamera.
+    public GameObject SpawnAtScreenPosition(PlaceableItemDefinition item, Vector2 screenPosition)
     {
         Camera cam = MainManager.Instance.CurCamera;
         if (cam == null)
@@ -144,7 +144,7 @@ public class PaletteManager : Singleton<PaletteManager>
             return null;
         }
 
-        Vector3 worldPos = cam.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, spawnDistanceFromCamera));
+        Vector3 worldPos = cam.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y, spawnDistanceFromCamera));
         return SpawnAt(item, worldPos);
     }
 

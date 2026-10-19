@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using UnityEngine;
 
@@ -8,8 +9,8 @@ public enum GenderOption { Male, Female, NonBinary, PreferNotToSay }
 // consent and demographics screens, read by whatever ends up saving data to disk.
 public static class SessionInfo
 {
-    // Anonymous, auto-generated when consent is given. Ties the CSV rows to the file name.
-    public static string SessionId { get; private set; }
+    // Typed in by the researcher on the consent screen.
+    public static string ParticipantId { get; private set; }
     public static DateTime ConsentTimestampUtc { get; private set; }
     public static bool HasConsented { get; private set; }
 
@@ -18,25 +19,29 @@ public static class SessionInfo
 
     public static string OutputFolder => Path.Combine(Application.persistentDataPath, "ReconstructionData");
 
-    public static void RecordConsent()
+    static string sessionFileTag;
+
+    public static void RecordConsent(string participantId)
     {
-        SessionId = Guid.NewGuid().ToString("N").Substring(0, 8);
+        ParticipantId = participantId.Trim();
         ConsentTimestampUtc = DateTime.UtcNow;
         HasConsented = true;
+        sessionFileTag = null;
 
         Directory.CreateDirectory(OutputFolder);
-        string line = $"{SessionId},{ConsentTimestampUtc:O}";
+        string line = $"{ParticipantId},{ConsentTimestampUtc:O}";
         File.AppendAllText(Path.Combine(OutputFolder, "consent_log.csv"), line + Environment.NewLine);
     }
 
     // Clears everything about the finished participant so the next one starts fresh.
     public static void Reset()
     {
-        SessionId = null;
+        ParticipantId = null;
         ConsentTimestampUtc = default;
         HasConsented = false;
         Age = 0;
         Gender = null;
+        sessionFileTag = null;
     }
 
     public static void SetDemographics(int age, GenderOption gender)
@@ -45,5 +50,23 @@ public static class SessionInfo
         Gender = gender;
     }
 
-    public static string SessionFileTag => $"{ConsentTimestampUtc:yyyyMMdd_HHmmss}_{SessionId}";
+    // "<participant id>_<yyyy-MM-dd>", e.g. "P012_2026-10-16". Used for the results file and
+    // the screenshots. If that name is already taken (same participant, same day) a
+    // number is added, so an earlier file is never overwritten.
+    public static string SessionFileTag => sessionFileTag ??= BuildFileTag();
+
+    static string BuildFileTag()
+    {
+        string id = string.IsNullOrWhiteSpace(ParticipantId) ? "unknown" : ParticipantId;
+        foreach (char c in Path.GetInvalidFileNameChars())
+            id = id.Replace(c, '_');
+
+        DateTime when = HasConsented ? ConsentTimestampUtc : DateTime.UtcNow;
+        string baseTag = $"{id}_{when.ToLocalTime().ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}";
+
+        string tag = baseTag;
+        for (int n = 2; File.Exists(Path.Combine(OutputFolder, tag + ".csv")); n++)
+            tag = $"{baseTag}_{n}";
+        return tag;
+    }
 }

@@ -1,12 +1,13 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Localization.Settings;
 
-// The experimenter's settings menu. Builds one row per trial scene (practice scene first,
-// then MainManager.SceneNameList) from a row prefab, offers the global settings (language,
-// timed black screen length) and saves on Close.
+// The experimenter's settings menu. Builds one row per scene in MainManager.SceneNameList
+// (in the order the researcher set; at most two can be included, the first is the practice
+// scene) from a row prefab, offers the global settings (language, durations) and saves on Close.
 public class SettingsUI : MonoBehaviour
 {
     [Tooltip("The panel to show/hide. Can be this same GameObject.")]
@@ -18,8 +19,12 @@ public class SettingsUI : MonoBehaviour
     [Header("Global settings")]
     [Tooltip("Lists every locale registered in the Localization Settings.")]
     public TMP_Dropdown languageDropdown;
-    [Tooltip("Seconds the black screen stays for every scene that uses a fixed wait time.")]
+    [Tooltip("Seconds the timed black screen stays in the second (data) scene.")]
     public TMP_InputField blackScreenSecondsInput;
+    [Tooltip("Seconds the timed black screen stays in the first (practice) scene.")]
+    public TMP_InputField practiceBlackScreenSecondsInput;
+    [Tooltip("Seconds the original image is shown, for every scene.")]
+    public TMP_InputField originalSecondsInput;
 
     public bool IsOpen => panel.activeSelf;
 
@@ -27,9 +32,9 @@ public class SettingsUI : MonoBehaviour
     public void Open()
     {
         panel.SetActive(true);
-        Rebuild();
+        Refresh();
         SetupLanguageDropdown();
-        SetupBlackScreenInput();
+        SetupSecondsInputs();
     }
 
     public void Toggle()
@@ -84,48 +89,74 @@ public class SettingsUI : MonoBehaviour
         languageDropdown.onValueChanged.AddListener(index => SettingsStore.SetLanguage(locales[index]));
     }
 
-    void SetupBlackScreenInput()
+    void SetupSecondsInputs()
     {
-        if (blackScreenSecondsInput == null) return;
-
-        blackScreenSecondsInput.contentType = TMP_InputField.ContentType.DecimalNumber;
-        blackScreenSecondsInput.onEndEdit.RemoveAllListeners();
-        ShowBlackScreenSeconds();
-        blackScreenSecondsInput.onEndEdit.AddListener(OnBlackScreenSecondsEdited);
+        var main = MainManager.Instance;
+        SetupSecondsInput(blackScreenSecondsInput,
+            () => SettingsStore.GetBlackScreenSeconds(main.BlackScreenWaitTime), SettingsStore.SetBlackScreenSeconds);
+        SetupSecondsInput(practiceBlackScreenSecondsInput,
+            () => SettingsStore.GetPracticeBlackScreenSeconds(SettingsStore.GetBlackScreenSeconds(main.BlackScreenWaitTime)),
+            SettingsStore.SetPracticeBlackScreenSeconds);
+        SetupSecondsInput(originalSecondsInput,
+            () => SettingsStore.GetOriginalSeconds(main.OriginalSceneWaitTime), SettingsStore.SetOriginalSeconds);
     }
 
-    void ShowBlackScreenSeconds()
+    // A decimal input for a number of seconds. Accepts "2.5" and "2,5". Anything that isn't
+    // a number above 0 is ignored and the field goes back to the value currently in use.
+    static void SetupSecondsInput(TMP_InputField input, Func<float> getSeconds, Action<float> setSeconds)
     {
-        float seconds = SettingsStore.GetBlackScreenSeconds(MainManager.Instance.BlackScreenWaitTime);
-        blackScreenSecondsInput.SetTextWithoutNotify(seconds.ToString("0.##", CultureInfo.InvariantCulture));
-    }
+        if (input == null) return;
 
-    // Accepts "2.5" and "2,5". Anything that isn't a number above 0 is ignored and the
-    // field goes back to the value currently in use.
-    void OnBlackScreenSecondsEdited(string text)
-    {
-        if (float.TryParse(text.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out float seconds)
-            && seconds > 0f)
+        void Show() => input.SetTextWithoutNotify(getSeconds().ToString("0.##", CultureInfo.InvariantCulture));
+
+        input.contentType = TMP_InputField.ContentType.DecimalNumber;
+        input.onEndEdit.RemoveAllListeners();
+        input.onEndEdit.AddListener(text =>
         {
-            SettingsStore.SetBlackScreenSeconds(seconds);
-        }
-        ShowBlackScreenSeconds();
+            if (float.TryParse(text.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out float seconds)
+                && seconds > 0f)
+            {
+                setSeconds(seconds);
+            }
+            Show();
+        });
+        Show();
     }
 
-    void Rebuild()
+    // Used by the rows.
+    public bool CanIncludeAnother() =>
+        SettingsStore.CountIncluded(MainManager.Instance.SceneNameList) < SettingsStore.MaxIncludedScenes;
+
+    public void MoveScene(string sceneName, int delta)
+    {
+        SettingsStore.MoveScene(MainManager.Instance.SceneNameList, sceneName, delta);
+        Refresh();
+    }
+
+    // Rebuilds the rows, in the order the researcher set. The first included scene is the
+    // practice scene and the included scenes' positions decide their black screen mode.
+    public void Refresh()
     {
         foreach (Transform child in rowContainer)
+        {
+            child.gameObject.SetActive(false); // gone from the layout right away, destroyed at frame end
             Destroy(child.gameObject);
+        }
 
         var zoom = CameraZoomController.Instance;
         float minFov = zoom != null ? zoom.minFieldOfView : 20f;
         float maxFov = zoom != null ? zoom.maxFieldOfView : 80f;
 
-        var main = MainManager.Instance;
-        foreach (string sceneName in main.GetTrialSceneNames())
+        List<string> ordered = SettingsStore.GetOrderedScenes(MainManager.Instance.SceneNameList);
+        SettingsStore.EnforceMaxIncluded(ordered);
+
+        int position = 0;
+        foreach (string sceneName in ordered)
         {
-            string label = sceneName == main.PracticeSceneName ? $"{sceneName} (practice)" : sceneName;
-            Instantiate(rowPrefab, rowContainer).Bind(label, SettingsStore.Get(sceneName), minFov, maxFov);
+            SceneSettings settings = SettingsStore.Get(sceneName);
+            int trialPosition = settings.include ? position++ : -1;
+            string label = trialPosition == 0 ? $"{sceneName} (practice)" : sceneName;
+            Instantiate(rowPrefab, rowContainer).Bind(label, settings, trialPosition, minFov, maxFov, this);
         }
     }
 }

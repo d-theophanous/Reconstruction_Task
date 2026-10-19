@@ -26,7 +26,7 @@ public class ErrorManager : Singleton<ErrorManager>
     {
         var rows = new List<string>
         {
-            "SessionId,Age,Gender,SceneName,IsPractice,ReconstructionSeconds,FixedBlackScreen,OriginalStartFOV,ReconStartFOV,ReconConfirmFOV,ObjectType,OrigPosX,OrigPosY,OrigPosZ,OrigScaleX,OrigScaleY,OrigScaleZ," +
+            "ParticipantId,Age,Gender,SceneName,TrialNumber,IsPractice,ReconstructionSeconds,FixedBlackScreen,OriginalStartFOV,ReconStartFOV,ReconConfirmFOV,ObjectType,OrigPosX,OrigPosY,OrigPosZ,OrigScaleX,OrigScaleY,OrigScaleZ," +
             "ReconPosX,ReconPosY,ReconPosZ,ReconScaleX,ReconScaleY,ReconScaleZ"
             //"PositionError,ScaleError",ReconScreenW,ReconScreenH
         };
@@ -46,7 +46,7 @@ public class ErrorManager : Singleton<ErrorManager>
                 float scaleError = Vector3.Distance(orig.Scale, recon.Scale);
 
                 rows.Add(string.Join(",",
-                    sessionId, age, gender, sceneName, record.IsPractice, F(record.ReconstructionSeconds),
+                    sessionId, age, gender, sceneName, record.TrialNumber, record.IsPractice, F(record.ReconstructionSeconds),
                     record.FixedBlackScreen, F(record.OriginalStartFieldOfView), F(record.ReconStartFieldOfView),
                     F(record.ReconConfirmFieldOfView), orig.Type,
                     F(orig.Position.x), F(orig.Position.y), F(orig.Position.z),
@@ -59,7 +59,7 @@ public class ErrorManager : Singleton<ErrorManager>
         }
 
         Directory.CreateDirectory(SessionInfo.OutputFolder);
-        string path = Path.Combine(SessionInfo.OutputFolder, $"session_{SessionInfo.SessionFileTag}.csv");
+        string path = Path.Combine(SessionInfo.OutputFolder, $"{SessionInfo.SessionFileTag}.csv");
         File.WriteAllLines(path, rows);
     }
 
@@ -105,6 +105,7 @@ public class TrialRecord
     public List<ObjectData> Original = new();
     public List<ObjectData> Recon = new();
     public bool IsPractice;
+    public int TrialNumber;                  // position among the real trials in the order shown (practice = 0)
     public float ReconstructionSeconds;
     public bool FixedBlackScreen;            // true: timed black screen, false: waited for the key press
     public float OriginalStartFieldOfView;   // zoom when the original image first appeared

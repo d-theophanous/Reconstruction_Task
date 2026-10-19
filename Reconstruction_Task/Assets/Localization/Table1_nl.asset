@@ -19,8 +19,7 @@ MonoBehaviour:
     m_Items: []
   m_TableData:
   - m_Id: 812271190016
-    m_Localized: "De onderzoeker geeft nu informatie over de taak\nen vraagt toestemming
-      voor het gebruiken van de \ngegevens voor wetenschappelijk onderzoek. "
+    m_Localized: "De onderzoeker geeft nu informatie over de taak\nen vraagt toestemming voor het gebruiken van de \ngegevens voor wetenschappelijk onderzoek. "
     m_Metadata:
       m_Items: []
   - m_Id: 858630832128
@@ -72,12 +71,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1294930722816
-    m_Localized: "Je zult nu een plaatje zien van objecten die geplaatst zijn in
-      een omgeving. Daarnaast zul je de omgeving weer zien maar dan zonder objecten.
-      Jouw taak is om de omgeving na te maken zoals hij eerst was door de objecten
-      terug op de juiste plek te plaatsen met dezelfde grootte. Daarnaast kan je
-      de achtergrond in-en uit zoomen. \r\n\r\nEerst is er een oefenronde, daarna
-      begint het echte experiment \r\n"
+    m_Localized: "Je krijgt zo een plaatje te zien van een omgeving met voorwerpen.\nNa een paar seconden verdwijnt het plaatje en vlak daarna moet je het plaatje namaken precies zoals het er eerst uitzag.\nJe kunt dit doen door de voorwerpen terug of de juiste plek te zetten en ze groter of kleiner te maken, Ook kun je de achtergrond in- of uitzoomen.\n \nEr is eerrst een oefenronde. Daarna begint het echte experiment."
     m_Metadata:
       m_Items: []
   - m_Id: 1353437069312
@@ -85,10 +79,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1402959216640
-    m_Localized: "Beweeg het object met je muis. Om de diepte van het object te veranderen,
-      gebruik de \u201CW\u201D en \u201CS\u201D toetsen. Om de grootte van het object
-      te veranderen, gebruik de \u201CA\u201D en \u201CD\u201D toetsen. Gebruik de
-      scroll knop om in en uit te zoomen in de sc\xE9ne"
+    m_Localized: "Beweeg het object met je muis. Om de diepte van het object te veranderen, gebruik de \u201CW\u201D en \u201CS\u201D toetsen. Om de grootte van het object te veranderen, gebruik de \u201CA\u201D en \u201CD\u201D toetsen. Gebruik de scroll knop om in en uit te zoomen in de sc\xE9ne"
     m_Metadata:
       m_Items: []
   - m_Id: 1496865488896
@@ -100,13 +91,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1470491705344
-    m_Localized: "\u201CW\u201D en \u201CS\u201D toetsen om de diepte van het object
-      te veranderen"
+    m_Localized: "\u201CW\u201D en \u201CS\u201D toetsen om de diepte van het object te veranderen"
     m_Metadata:
       m_Items: []
   - m_Id: 1443941761024
-    m_Localized: "\u201CA\u201D en \u201CD\u201D toetsen om de grootte van het object
-      te veranderen"
+    m_Localized: "\u201CA\u201D en \u201CD\u201D toetsen om de grootte van het object te veranderen"
     m_Metadata:
       m_Items: []
   - m_Id: 1661609361408
@@ -142,9 +131,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 40708025270272
-    m_Localized: "Je kan nu zo specifiek mogelijk uitleggen aan de onderzoeker wat
-      je hebt gezien in de voorbeeldsc\xE8ne. Je kan de onderzoeker roepen als die
-      niet in de buurt is."
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 356593101357056
+    m_Localized: "Geweldig! Klik op \u2018Volgende\u2019 als je klaar bent voor de volgende reconstructie."
     m_Metadata:
       m_Items: []
   references:

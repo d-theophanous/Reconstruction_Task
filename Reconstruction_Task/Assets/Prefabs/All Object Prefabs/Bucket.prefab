@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 700335717181589464}
   - component: {fileID: 7838383951288135958}
   - component: {fileID: 6659426174562687680}
+  - component: {fileID: 5048686384991872672}
   m_Layer: 0
   m_Name: Bucket
   m_TagString: Untagged
@@ -113,3 +114,16 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: -944563635335726766, guid: 075ad0301c9921e4fb393d48cee69325, type: 3}
+--- !u!114 &5048686384991872672
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3648716720688479934}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 412d2f7a12a6fc24fb213bc34b699e89, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectScript
+  ObjectType: 6

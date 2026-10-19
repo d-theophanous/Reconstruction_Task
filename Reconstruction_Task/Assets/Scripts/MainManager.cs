@@ -32,6 +32,7 @@ public class MainManager : Singleton<MainManager>
     [HideInInspector]
     public Camera CurCamera;
 
+    [Tooltip("Default length of the original image. The settings menu's original image seconds value overrides it once set.")]
     public float OriginalSceneWaitTime;
     [Tooltip("Default length of a timed black screen. The settings menu's black screen seconds value overrides it once set.")]
     public float BlackScreenWaitTime;
@@ -43,7 +44,11 @@ public class MainManager : Singleton<MainManager>
     public GameObject BlackScreenContinueText;
 
     [Header("Comparison Screen Texts")]
+    [Tooltip("Shown after the practice round.")]
     public LocalizedString PracticeCompleteText;
+    [Tooltip("Shown after each real reconstruction except the last one.")]
+    public LocalizedString BetweenTrialsText;
+    [Tooltip("Shown after the last reconstruction, i.e. when the whole experiment is finished.")]
     public LocalizedString TrialCompleteText;
 
     [Header("Settings Menu")]
@@ -52,8 +57,7 @@ public class MainManager : Singleton<MainManager>
     public KeyCode SettingsMenuKey = KeyCode.Tab;
 
     [Header("Trials")]
-    [Tooltip("Optional - run through this scene once first, same mechanics. Its data is saved too, tagged IsPractice.")]
-    public string PracticeSceneName;
+    [Tooltip("Every scene that can be used. In the settings menu at most two are ticked 'include' and ordered: the first becomes the practice scene (its data is saved too, tagged IsPractice), the second the data scene.")]
     public List<string> SceneNameList = new();
     public bool SaveTrialScreenshots = true;
 
@@ -63,6 +67,7 @@ public class MainManager : Singleton<MainManager>
     private Texture2D lastOriginalTex;
     private Texture2D lastReconTex;
     private int trialIndex;
+    private int realTrialNumber;
 
     // Zoom (field of view) for the scene that's about to load - applied in SetCurCamera,
     // which the loaded scene's SceneInfoScript calls from Start, so even the very first
@@ -105,16 +110,6 @@ public class MainManager : Singleton<MainManager>
         return current != null && current.TryGetComponent(out TMP_InputField input) && input.isFocused;
     }
 
-    // Practice scene (if set) followed by every scene in SceneNameList - the scenes the
-    // settings menu shows a row for.
-    public List<string> GetTrialSceneNames()
-    {
-        var names = new List<string>();
-        if (!string.IsNullOrEmpty(PracticeSceneName)) names.Add(PracticeSceneName);
-        names.AddRange(SceneNameList);
-        return names;
-    }
-
     public void ShowTutorialInfoScreen()
     {
         MenuUI.gameObject.SetActive(false);
@@ -131,30 +126,37 @@ public class MainManager : Singleton<MainManager>
     private IEnumerator ReconstructionLoopCoroutine()
     {
         trialIndex = 0;
+        realTrialNumber = 0;
         string previousScene = null;
 
-        if (!string.IsNullOrEmpty(PracticeSceneName) && SettingsStore.Get(PracticeSceneName).include)
+        // At most two scenes, in the order set in the settings menu. The first is the practice
+        // scene, the second the data scene. The black screen mode (timed or waiting for the
+        // key) belongs to the position in this sequence, not to a particular scene.
+        List<string> scenesToRun = SettingsStore.GetScenesToRun(SceneNameList);
+        float generalBlackScreenSeconds = SettingsStore.GetBlackScreenSeconds(BlackScreenWaitTime);
+
+        for (int i = 0; i < scenesToRun.Count; i++)
         {
-            IsTrialRun = true;
-            yield return RunTrial(PracticeSceneName, null, isPractice: true);
-            previousScene = PracticeSceneName;
+            bool isPractice = i == 0;
+            IsTrialRun = isPractice;
+
+            yield return RunTrial(scenesToRun[i], previousScene, isPractice,
+                fixedBlackScreen: SettingsStore.GetFixedBlackScreen(i),
+                blackScreenSeconds: isPractice
+                    ? SettingsStore.GetPracticeBlackScreenSeconds(generalBlackScreenSeconds)
+                    : generalBlackScreenSeconds,
+                isLastTrial: i == scenesToRun.Count - 1);
+            previousScene = scenesToRun[i];
         }
 
         IsTrialRun = false;
-        foreach (string sceneName in SceneNameList)
-        {
-            if (!SettingsStore.Get(sceneName).include) continue;
-
-            yield return RunTrial(sceneName, previousScene, isPractice: false);
-            previousScene = sceneName;
-        }
 
         if (!string.IsNullOrEmpty(previousScene))
             yield return SceneManager.UnloadSceneAsync(previousScene);
 
         HideLoadingBlackScreen(); // the last trial left it on after Continue
 
-        ErrorManager.Instance.CalculateAndSaveError(SessionInfo.SessionId);
+        ErrorManager.Instance.CalculateAndSaveError(SessionInfo.ParticipantId);
 
         // Fresh state for the next participant, who starts again at the consent screen.
         ErrorManager.Instance.ResetData();
@@ -169,7 +171,7 @@ public class MainManager : Singleton<MainManager>
 
     // Runs one full trial: load scene -> show original -> black screen -> reconstruct ->
     // confirm -> comparison screen -> clean up. Shared by the practice run and every real trial.
-    private IEnumerator RunTrial(string sceneName, string unloadSceneName, bool isPractice)
+    private IEnumerator RunTrial(string sceneName, string unloadSceneName, bool isPractice, bool fixedBlackScreen, float blackScreenSeconds, bool isLastTrial = false)
     {
         SceneSettings settings = SettingsStore.Get(sceneName);
         pendingFieldOfView = settings.originalFieldOfView;
@@ -188,7 +190,7 @@ public class MainManager : Singleton<MainManager>
 
         SetTrialUI(true); // the original image is now visible
 
-        yield return new WaitForSeconds(OriginalSceneWaitTime);
+        yield return new WaitForSeconds(SettingsStore.GetOriginalSeconds(OriginalSceneWaitTime));
 
         CleanupTrialTextures();
         lastOriginalTex = CameraCaptureUtility.Capture(CurCamera);
@@ -202,9 +204,9 @@ public class MainManager : Singleton<MainManager>
         // Switch to the reconstruction zoom while the screen is black, so there's no visible jump.
         float reconStartFieldOfView = ApplyFieldOfView(CurCamera, settings.reconstructionFieldOfView);
 
-        if (settings.blackScreenFixedTime)
+        if (fixedBlackScreen)
         {
-            yield return new WaitForSeconds(SettingsStore.GetBlackScreenSeconds(BlackScreenWaitTime));
+            yield return new WaitForSeconds(blackScreenSeconds);
         }
         else
         {
@@ -240,8 +242,9 @@ public class MainManager : Singleton<MainManager>
             Original = originalData,
             Recon = reconData,
             IsPractice = isPractice,
+            TrialNumber = isPractice ? 0 : ++realTrialNumber,
             ReconstructionSeconds = reconstructionSeconds,
-            FixedBlackScreen = settings.blackScreenFixedTime,
+            FixedBlackScreen = fixedBlackScreen,
             OriginalStartFieldOfView = originalStartFieldOfView,
             ReconStartFieldOfView = reconStartFieldOfView,
             ReconConfirmFieldOfView = confirmFieldOfView
@@ -256,7 +259,7 @@ public class MainManager : Singleton<MainManager>
         if (ComparisonUI != null)
         {
             bool acknowledged = false;
-            LocalizedString label = isPractice ? PracticeCompleteText : TrialCompleteText;
+            LocalizedString label = TitleFor(isPractice, isLastTrial);
             ComparisonUI.Show(lastOriginalTex, lastReconTex, label, () =>
             {
                 acknowledged = true;
@@ -295,6 +298,15 @@ public class MainManager : Singleton<MainManager>
     bool ContinueComboPressed() =>
         Input.GetKeyDown(ContinueBlackScreenKey) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
 
+    LocalizedString TitleFor(bool isPractice, bool isLastTrial)
+    {
+        if (isPractice) return PracticeCompleteText;
+        if (isLastTrial) return TrialCompleteText;
+
+        // Until the in-between title is filled in, fall back to the old behaviour.
+        return BetweenTrialsText != null && !BetweenTrialsText.IsEmpty ? BetweenTrialsText : TrialCompleteText;
+    }
+
     // Black Background is a child of the Reconstruction UI canvas, so that canvas has to be
     // active for the black screen to be visible at all. Covers everything while a scene loads.
     void ShowLoadingBlackScreen()
@@ -330,7 +342,7 @@ public class MainManager : Singleton<MainManager>
     void SaveScreenshots(string sceneName, int index, bool isPractice)
     {
         Directory.CreateDirectory(SessionInfo.OutputFolder);
-        string prefix = isPractice ? "practice" : $"trial{index}_{sceneName}";
+        string prefix = $"{SessionInfo.SessionFileTag}_" + (isPractice ? "practice" : $"trial{index}_{sceneName}");
         File.WriteAllBytes(Path.Combine(SessionInfo.OutputFolder, $"{prefix}_original.png"), lastOriginalTex.EncodeToPNG());
         File.WriteAllBytes(Path.Combine(SessionInfo.OutputFolder, $"{prefix}_recon.png"), lastReconTex.EncodeToPNG());
     }

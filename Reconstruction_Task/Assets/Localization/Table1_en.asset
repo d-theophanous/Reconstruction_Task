@@ -19,8 +19,7 @@ MonoBehaviour:
     m_Items: []
   m_TableData:
   - m_Id: 812271190016
-    m_Localized: The researcher now provides information about the study and asks
-      for permission to use the data for scientific research.
+    m_Localized: The researcher now provides information about the study and asks for permission to use the data for scientific research.
     m_Metadata:
       m_Items: []
   - m_Id: 858630832128
@@ -72,10 +71,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1294930722816
-    m_Localized: "You will now see a picture of objects that were placed in an environment.
-      Afterwards, you will see the empty environment and your task will be to reconstruct
-      the scene by placing the objects at the same spot that you saw them in. \r\n\r\nThere
-      is a trial run first. Afterwards the experiment starts.\r\n"
+    m_Localized: "You will now see a picture of objects that were placed in an environment. Afterwards, you will see the empty environment and your task will be to reconstruct the scene by placing the objects at the same spot that you saw them in. \r\n\r\nThere is a trial run first. Afterwards the experiment starts.\r\n"
     m_Metadata:
       m_Items: []
   - m_Id: 1353437069312
@@ -83,9 +79,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1402959216640
-    m_Localized: Move the object with your mouse. To change the depth use the "W"
-      and "S" keys, to change the scale use "A" and "D". Use the mousewheel to zoom
-      in or out of the scene.
+    m_Localized: Move the object with your mouse. To change the depth use the "W" and "S" keys, to change the scale use "A" and "D". Use the mousewheel to zoom in or out of the scene.
     m_Metadata:
       m_Items: []
   - m_Id: 1443941761024
@@ -137,8 +131,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 40708025270272
-    m_Localized: You can now explain the example scene in as much detail as you can
-      to the researcher. You can call the researcher to you if they're occupied.
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 356593101357056
+    m_Localized: Great! Click continue when you are ready for the next reconstruction.
     m_Metadata:
       m_Items: []
   references:
